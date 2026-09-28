@@ -1,6 +1,8 @@
 # Deploy de la demo en Netlify.
-# Vista previa para el cliente: solo la landing (VITE_LANDING_ONLY=true).
-# Para publicar la app completa, cambiar esa variable a "false".
+# VITE_DEMO_SCOPE define qué se publica (ver frontend/src/app/scope.ts):
+#   landing  → solo la landing
+#   cliente  → landing + app del cliente, sin solicitar servicios (vista previa actual)
+#   full     → todo: los tres roles y las solicitudes
 
 [build]
   base = "frontend"
@@ -10,7 +12,7 @@
 [build.environment]
   NODE_VERSION = "22"
   PNPM_VERSION = "11.21.0"
-  VITE_LANDING_ONLY = "true"
+  VITE_DEMO_SCOPE = "cliente"
 
 # SPA: cualquier ruta la resuelve React Router
 [[redirects]]

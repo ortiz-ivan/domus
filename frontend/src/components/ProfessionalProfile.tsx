@@ -1,5 +1,6 @@
 import { BadgeCheck, Briefcase, Clock, MapPin, Star } from 'lucide-react'
 import { useState } from 'react'
+import { CAN_REQUEST } from '@/app/config'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button, LinkButton } from '@/components/ui/Button'
@@ -12,6 +13,24 @@ import { ratingOf, useDirectory } from '@/store/selectors'
 import type { Professional } from '@/types'
 
 const PAGE = 4
+
+/** En la vista previa (VITE_DEMO_SCOPE=cliente) todavía no se pueden solicitar servicios */
+const PREVIEW_NOTE = 'Muy pronto vas a poder solicitar servicios desde Domus.'
+
+function RequestButton({ to, className }: { to: string; className?: string }) {
+  if (CAN_REQUEST) {
+    return (
+      <LinkButton to={to} size="lg" className={className}>
+        Solicitar servicio
+      </LinkButton>
+    )
+  }
+  return (
+    <Button size="lg" className={className} disabled aria-describedby="solicitud-proximamente">
+      Solicitar servicio
+    </Button>
+  )
+}
 
 interface ProfessionalProfileProps {
   professional: Professional
@@ -87,10 +106,9 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
               Desde
               <span className="block font-heading text-xl font-bold text-foreground tabular-nums">{formatGs(professional.basePrice)}</span>
             </p>
-            <LinkButton to={requestPath} size="lg">
-              Solicitar servicio
-            </LinkButton>
+            <RequestButton to={requestPath} />
           </div>
+          {!CAN_REQUEST && <p className="mt-3 text-sm text-muted-foreground lg:hidden">{PREVIEW_NOTE}</p>}
         </Card>
 
         <Card>
@@ -141,10 +159,10 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
         <p className="text-sm text-muted-foreground">Precio referencial por visita</p>
         <p className="font-heading text-3xl font-bold tabular-nums">{formatGs(professional.basePrice)}</p>
         <p className="mt-2 text-sm text-muted-foreground">El monto final se acuerda según el trabajo.</p>
-        <LinkButton to={requestPath} size="lg" className="mt-5 w-full">
-          Solicitar servicio
-        </LinkButton>
-        <p className="mt-3 text-center text-xs text-muted-foreground">Sin costo hasta que el trabajo esté hecho.</p>
+        <RequestButton to={requestPath} className="mt-5 w-full" />
+        <p id={CAN_REQUEST ? undefined : 'solicitud-proximamente'} className="mt-3 text-center text-xs text-muted-foreground">
+          {CAN_REQUEST ? 'Sin costo hasta que el trabajo esté hecho.' : PREVIEW_NOTE}
+        </p>
       </Card>
     </div>
   )

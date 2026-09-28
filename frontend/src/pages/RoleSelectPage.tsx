@@ -1,6 +1,7 @@
-import { ArrowLeft, ArrowRight, HardHat, RotateCcw, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, HardHat, RotateCcw, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
+import { isRoleEnabled, PRESENTER_TOOLS } from '@/app/config'
 import { ROLE_HOME, ROLE_LABELS } from '@/app/navigation'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/Button'
@@ -31,23 +32,25 @@ export function RoleSelectPage() {
   const auto = params.get('como')
 
   const enter = (role: Role) => {
+    if (!isRoleEnabled(role)) return
     login(DEMO_USER_IDS[role])
     // Solo se respeta "next" si pertenece a la sección del rol elegido
     navigate(next?.startsWith(ROLE_HOME[role]) ? next : ROLE_HOME[role])
   }
 
   // /ingresar?como=profesional entra directo: lo usan los controles del presentador al abrir otra pestaña
+  const autoRole = isRole(auto) && isRoleEnabled(auto) ? auto : null
   useEffect(() => {
-    if (!isRole(auto)) return
-    login(DEMO_USER_IDS[auto])
-    navigate(ROLE_HOME[auto], { replace: true })
-  }, [auto, login, navigate])
+    if (!autoRole) return
+    login(DEMO_USER_IDS[autoRole])
+    navigate(ROLE_HOME[autoRole], { replace: true })
+  }, [autoRole, login, navigate])
 
   const reset = () => {
     if (window.confirm('¿Reiniciar la demo? Se pierden las solicitudes, calificaciones y pagos creados.')) resetDemo()
   }
 
-  if (isRole(auto)) return null
+  if (autoRole) return null
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -66,21 +69,27 @@ export function RoleSelectPage() {
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
         <h1 className="text-center text-2xl font-bold text-balance sm:text-3xl">¿Con qué rol querés ingresar?</h1>
         <p className="mt-2 max-w-md text-center text-muted-foreground">
-          Demo interactiva. Tip: abrí cada rol en una pestaña distinta para ver cómo se conectan en tiempo real.
+          {PRESENTER_TOOLS
+            ? 'Demo interactiva. Tip: abrí cada rol en una pestaña distinta para ver cómo se conectan en tiempo real.'
+            : 'Vista previa: por ahora podés recorrer Domus como cliente.'}
         </p>
 
         <ul className="mt-8 grid w-full max-w-4xl gap-4 sm:grid-cols-3">
           {ROLE_CARDS.map(({ role, icon: Icon, description }) => {
             const user = users.find((u) => u.id === DEMO_USER_IDS[role])
-            const highlighted = role === suggested
+            const enabled = isRoleEnabled(role)
+            const highlighted = enabled && role === suggested
             return (
               <li key={role}>
                 <button
                   type="button"
                   onClick={() => enter(role)}
+                  // Rol no publicado en esta vista previa: se muestra, pero no se puede entrar
+                  disabled={!enabled}
                   className={cn(
                     'group flex h-full w-full flex-col items-start rounded-xl border bg-card p-6 text-left transition-colors duration-150 hover:border-accent',
                     highlighted ? 'border-primary ring-2 ring-primary/15' : 'border-border',
+                    !enabled && 'cursor-not-allowed opacity-60 hover:border-border',
                   )}
                 >
                   <span className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-accent-soft">
@@ -88,11 +97,20 @@ export function RoleSelectPage() {
                   </span>
                   <span className="font-heading text-lg font-semibold">{ROLE_LABELS[role]}</span>
                   <span className="mt-1 flex-1 text-sm text-muted-foreground">{description}</span>
-                  {user && <span className="mt-4 text-xs text-muted-foreground">Entrás como {user.name}</span>}
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                    Ingresar
-                    <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true" />
-                  </span>
+                  {enabled ? (
+                    <>
+                      {user && <span className="mt-4 text-xs text-muted-foreground">Entrás como {user.name}</span>}
+                      <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                        Ingresar
+                        <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true" />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                      <Clock className="size-3.5" aria-hidden="true" />
+                      Próximamente
+                    </span>
+                  )}
                 </button>
               </li>
             )

@@ -1,5 +1,16 @@
-/**
- * Modo vista previa: publica solo la landing (VITE_LANDING_ONLY=true).
- * Lo activa netlify.toml; en desarrollo local la app completa sigue disponible.
- */
-export const LANDING_ONLY = import.meta.env.VITE_LANDING_ONLY === 'true'
+import { enabledRoles, parseDemoScope } from '@/app/scope'
+import type { Role } from '@/types'
+
+/** Alcance de esta build (ver app/scope.ts). netlify.toml lo fija; en desarrollo local es "full". */
+export const DEMO_SCOPE = parseDemoScope(import.meta.env.VITE_DEMO_SCOPE, import.meta.env.VITE_LANDING_ONLY)
+
+/** Solo la landing: los CTA de ingreso llevan a "Próximamente" */
+export const LANDING_ONLY = DEMO_SCOPE === 'landing'
+
+/** Crear solicitudes de servicio (en la vista previa de clientes está deshabilitado) */
+export const CAN_REQUEST = DEMO_SCOPE === 'full'
+
+/** Herramientas de la exposición (controles del presentador): solo con todos los roles */
+export const PRESENTER_TOOLS = DEMO_SCOPE === 'full'
+
+export const isRoleEnabled = (role: Role) => enabledRoles(DEMO_SCOPE).includes(role)

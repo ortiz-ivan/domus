@@ -1,10 +1,12 @@
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { ArrowLeft, Clock, Pencil } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { CAN_REQUEST } from '@/app/config'
 import { SERVICE_PARAM } from '@/app/serviceParam'
 import { Avatar } from '@/components/ui/Avatar'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { BackLink } from '@/components/ui/BackLink'
-import { Button } from '@/components/ui/Button'
+import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { CITIES } from '@/data/seed'
@@ -105,6 +107,18 @@ export function NuevaSolicitudPage() {
     }
     headingRef.current?.focus()
   }, [step])
+
+  // Vista previa: el formulario todavía no está habilitado (también si se entra por URL)
+  if (!CAN_REQUEST) {
+    return (
+      <EmptyState
+        icon={Clock}
+        title="Muy pronto vas a poder solicitar servicios"
+        description="Mientras tanto, podés recorrer las categorías, ver perfiles y comparar profesionales."
+        action={<LinkButton to="/cliente/categorias">Ver categorías</LinkButton>}
+      />
+    )
+  }
 
   if (!professional || !user) {
     return <MissingResource what="el profesional elegido" backTo="/cliente/categorias" backLabel="Elegir profesional" />

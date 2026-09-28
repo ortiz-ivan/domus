@@ -1,7 +1,8 @@
-import { LogOut, Menu, X } from 'lucide-react'
+import { Info, LogOut, Menu, X } from 'lucide-react'
 import { useEffect, useRef, type RefObject } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { BOTTOM_NAV_MAX, isNavItemActive, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
+import { CAN_REQUEST, PRESENTER_TOOLS } from '@/app/config'
 import { useLiveNotifications } from '@/app/useLiveNotifications'
 import { useNavBadges } from '@/app/useNavBadges'
 import { DemoControls } from '@/components/layout/DemoControls'
@@ -225,11 +226,17 @@ export function AppShell({ role }: { role: Role }) {
         tabIndex={-1}
         className={cn('mx-auto max-w-6xl px-4 py-6 outline-none sm:px-6 lg:px-8 lg:py-8', useBottomNav && 'pb-28 lg:pb-8')}
       >
+        {!CAN_REQUEST && role === 'cliente' && (
+          <p className="mb-6 flex items-start gap-2 rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm">
+            <Info className="mt-0.5 size-4 shrink-0 text-accent-text" aria-hidden="true" />
+            Vista previa de Domus: podés recorrer la plataforma como cliente. La solicitud de servicios llega pronto.
+          </p>
+        )}
         <Outlet />
       </main>
 
       {useBottomNav ? <BottomNav items={items} /> : <MobileDrawer items={items} dialogRef={drawerRef} />}
-      <DemoControls role={role} hasBottomNav={useBottomNav} />
+      {PRESENTER_TOOLS && <DemoControls role={role} hasBottomNav={useBottomNav} />}
       <Toaster />
     </div>
   )
