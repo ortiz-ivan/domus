@@ -1,9 +1,10 @@
 import { LogOut, Menu, X } from 'lucide-react'
 import { useEffect, useRef, type RefObject } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
-import { BOTTOM_NAV_MAX, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
+import { BOTTOM_NAV_MAX, isNavItemActive, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
 import { useLiveNotifications } from '@/app/useLiveNotifications'
 import { useNavBadges } from '@/app/useNavBadges'
+import { DemoControls } from '@/components/layout/DemoControls'
 import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/ui/Avatar'
 import { Toaster } from '@/components/ui/Toaster'
@@ -14,17 +15,16 @@ import type { Role } from '@/types'
 
 function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const Icon = item.icon
+  const isActive = isNavItemActive(item, useLocation().pathname)
   return (
-    <NavLink
+    <Link
       to={item.to}
-      end={item.end}
       onClick={onNavigate}
-      className={({ isActive }) =>
-        cn(
-          'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
-          isActive ? 'bg-primary text-on-primary' : 'text-foreground hover:bg-muted',
-        )
-      }
+      aria-current={isActive ? 'page' : undefined}
+      className={cn(
+        'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
+        isActive ? 'bg-primary text-on-primary' : 'text-foreground hover:bg-muted',
+      )}
     >
       <Icon className="size-5 shrink-0" aria-hidden="true" />
       {item.label}
@@ -34,53 +34,47 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
           <span className="sr-only"> {item.badge.label}</span>
         </span>
       )}
-    </NavLink>
+    </Link>
   )
 }
 
 function BottomNav({ items }: { items: NavItem[] }) {
+  const { pathname } = useLocation()
   return (
     <nav
       aria-label="Navegación principal"
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="flex">
-        {items.map(({ to, label, icon: Icon, end, badge }) => (
-          <li key={to} className="flex-1">
-            <NavLink
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cn(
+        {items.map((item) => {
+          const { to, label, icon: Icon, badge } = item
+          const isActive = isNavItemActive(item, pathname)
+          return (
+            <li key={to} className="flex-1">
+              <Link
+                to={to}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
                   'flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-xs font-medium transition-colors duration-150',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span
-                    className={cn(
-                      'inline-flex h-7 w-12 items-center justify-center rounded-full',
-                      isActive && 'bg-accent-soft',
+                )}
+              >
+                <span className={cn('inline-flex h-7 w-12 items-center justify-center rounded-full', isActive && 'bg-accent-soft')}>
+                  <span className="relative">
+                    <Icon className="size-5" aria-hidden="true" />
+                    {badge && badge.count > 0 && (
+                      <span className="absolute -top-2 -right-3 min-w-5 rounded-full bg-accent px-1 text-center text-[11px] leading-5 font-semibold text-on-accent tabular-nums">
+                        {badge.count}
+                        <span className="sr-only"> {badge.label}</span>
+                      </span>
                     )}
-                  >
-                    <span className="relative">
-                      <Icon className="size-5" aria-hidden="true" />
-                      {badge && badge.count > 0 && (
-                        <span className="absolute -top-2 -right-3 min-w-5 rounded-full bg-accent px-1 text-center text-[11px] leading-5 font-semibold text-on-accent tabular-nums">
-                          {badge.count}
-                          <span className="sr-only"> {badge.label}</span>
-                        </span>
-                      )}
-                    </span>
                   </span>
-                  <span className="text-center leading-tight">{label}</span>
-                </>
-              )}
-            </NavLink>
-          </li>
-        ))}
+                </span>
+                <span className="text-center leading-tight">{label}</span>
+              </Link>
+            </li>
+          )
+        })}
       </ul>
     </nav>
   )
@@ -142,9 +136,8 @@ export function AppShell({ role }: { role: Role }) {
   }, [pendingTotal])
   const useBottomNav = items.length <= BOTTOM_NAV_MAX
 
-  // Al cambiar de pantalla: volver arriba y llevar el foco al contenido (lectores de pantalla)
+  // Al cambiar de pantalla, el foco va al contenido (lectores de pantalla). El scroll lo maneja ScrollRestoration.
   useEffect(() => {
-    window.scrollTo(0, 0)
     mainRef.current?.focus({ preventScroll: true })
   }, [pathname])
 
@@ -236,6 +229,7 @@ export function AppShell({ role }: { role: Role }) {
       </main>
 
       {useBottomNav ? <BottomNav items={items} /> : <MobileDrawer items={items} dialogRef={drawerRef} />}
+      <DemoControls role={role} hasBottomNav={useBottomNav} />
       <Toaster />
     </div>
   )

@@ -6,7 +6,6 @@ import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
 import { matchCategory } from '@/lib/search'
 import { useDemoStore } from '@/store/demo'
-import { loginPath } from '@/app/paths'
 
 interface SearchFormProps {
   variant?: 'hero' | 'compact'
@@ -27,8 +26,12 @@ export function SearchForm({ variant = 'hero', destination = 'login', className 
   const submit = (event: FormEvent) => {
     event.preventDefault()
     const category = matchCategory(query, categories)
-    const next = category ? `/cliente/categorias/${category.id}` : '/cliente/categorias'
-    navigate(destination === 'app' ? next : loginPath({ next, rol: 'cliente' }))
+    if (destination === 'app') {
+      navigate(category ? `/cliente/categorias/${category.id}` : '/cliente/categorias')
+      return
+    }
+    // Portada: la lista pública de la categoría, sin pedir ingreso (funciona también en el deploy "solo landing")
+    navigate(category ? `/servicios/${category.id}` : '/#servicios')
   }
 
   const cityField = (

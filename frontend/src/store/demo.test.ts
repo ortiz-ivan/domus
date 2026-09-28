@@ -230,7 +230,7 @@ describe('integridad de los datos semilla', () => {
 
   it('el cliente demo tiene solicitudes en distintos estados', () => {
     const own = store().requests.filter((r) => r.clientId === DEMO_USER_IDS.cliente).map((r) => r.status)
-    expect(own).toEqual(expect.arrayContaining(['pendiente', 'en_proceso', 'pagada']))
+    expect(own).toEqual(expect.arrayContaining(['pendiente', 'en_proceso', 'terminada', 'pagada']))
   })
 })
 

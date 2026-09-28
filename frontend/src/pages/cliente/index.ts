@@ -1,0 +1,11 @@
+// Pantallas del rol: se cargan juntas, en un solo archivo, recién al entrar a la sección (ver app/appRoutes.tsx)
+export { CalificacionPage } from './CalificacionPage'
+export { CategoriasPage } from './CategoriasPage'
+export { ClienteInicioPage } from './ClienteInicioPage'
+export { ConfirmacionPage } from './ConfirmacionPage'
+export { DetalleProfesionalPage } from './DetalleProfesionalPage'
+export { MisSolicitudesPage } from './MisSolicitudesPage'
+export { NuevaSolicitudPage } from './NuevaSolicitudPage'
+export { PagoPage } from './PagoPage'
+export { ProfesionalesPage } from './ProfesionalesPage'
+export { SeguimientoPage } from './SeguimientoPage'

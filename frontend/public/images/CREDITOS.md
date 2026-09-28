@@ -16,3 +16,5 @@ Se redimensionaron y convirtieron a WebP para la demo.
 | limpieza.webp | <https://images.unsplash.com/photo-1758273238415-01ec03d9ef27> |
 | jardineria.webp | <https://images.unsplash.com/photo-1690068023694-053da714f95f> |
 | profesional.webp | <https://images.unsplash.com/photo-1621905252507-b35492cc74b4> |
+| hero-768.webp | Misma foto que hero.webp, 768 px |
+| hero-1280.webp | Misma foto que hero.webp, 1280 px |

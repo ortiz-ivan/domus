@@ -38,6 +38,17 @@
 
   /* Movimiento */
   --animate-fade-in: fade-in 200ms ease-out;
+  /* Barra de avance de la rotación automática (su duración la fija el componente) */
+  --animate-progress: progress linear forwards;
+
+  @keyframes progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 
   @keyframes fade-in {
     from {

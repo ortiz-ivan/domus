@@ -1,85 +1,63 @@
+import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router'
-import { RequireRole } from '@/app/RequireRole'
-import { AppShell } from '@/components/layout/AppShell'
-import { AdminConfiguracionPage } from '@/pages/admin/AdminConfiguracionPage'
-import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
-import { AdminFinanzasPage } from '@/pages/admin/AdminFinanzasPage'
-import { AdminProfesionalesPage } from '@/pages/admin/AdminProfesionalesPage'
-import { AdminSolicitudesPage } from '@/pages/admin/AdminSolicitudesPage'
-import { AdminUsuariosPage } from '@/pages/admin/AdminUsuariosPage'
-import { CalificacionPage } from '@/pages/cliente/CalificacionPage'
-import { CategoriasPage } from '@/pages/cliente/CategoriasPage'
-import { ClienteInicioPage } from '@/pages/cliente/ClienteInicioPage'
-import { ConfirmacionPage } from '@/pages/cliente/ConfirmacionPage'
-import { DetalleProfesionalPage } from '@/pages/cliente/DetalleProfesionalPage'
-import { MisSolicitudesPage } from '@/pages/cliente/MisSolicitudesPage'
-import { NuevaSolicitudPage } from '@/pages/cliente/NuevaSolicitudPage'
-import { PagoPage } from '@/pages/cliente/PagoPage'
-import { ProfesionalesPage } from '@/pages/cliente/ProfesionalesPage'
-import { SeguimientoPage } from '@/pages/cliente/SeguimientoPage'
-import { DetalleTrabajoPage } from '@/pages/profesional/DetalleTrabajoPage'
-import { GananciasPage } from '@/pages/profesional/GananciasPage'
-import { PerfilPage } from '@/pages/profesional/PerfilPage'
-import { ProfesionalInicioPage } from '@/pages/profesional/ProfesionalInicioPage'
-import { SolicitudesNuevasPage } from '@/pages/profesional/SolicitudesNuevasPage'
-import { TrabajoEnProcesoPage } from '@/pages/profesional/TrabajoEnProcesoPage'
-import { TrabajosPage } from '@/pages/profesional/TrabajosPage'
-import { RoleSelectPage } from '@/pages/RoleSelectPage'
 
-/** Rutas de la app (ingreso + los tres roles). No se incluyen en el build "solo landing". */
+/*
+ * Rutas de la app (ingreso + los tres roles). No se incluyen en el build "solo landing".
+ * Carga diferida: el código de cada rol se descarga recién al entrar a su sección, así la
+ * portada no carga las 22 pantallas. Cada rol es un solo archivo (su index.ts agrupa las pantallas).
+ */
+
+/** Toma un componente de un módulo que se importa al navegar a la ruta. `name` se valida contra los exports. */
+const from = <M,>(load: () => Promise<M>, name: keyof M) => ({
+  Component: async () => (await load())[name] as ComponentType,
+})
+
+const clientePages = () => import('@/pages/cliente')
+const profesionalPages = () => import('@/pages/profesional')
+const adminPages = () => import('@/pages/admin')
+const layouts = () => import('@/components/layout/RoleLayout')
+
 export const appRoutes: RouteObject[] = [
-  { path: '/ingresar', element: <RoleSelectPage /> },
+  { path: '/ingresar', lazy: from(() => import('@/pages/RoleSelectPage'), 'RoleSelectPage') },
   {
     path: '/cliente',
-    element: (
-      <RequireRole role="cliente">
-        <AppShell role="cliente" />
-      </RequireRole>
-    ),
+    lazy: from(layouts, 'ClienteLayout'),
     children: [
-      { index: true, element: <ClienteInicioPage /> },
-      { path: 'categorias', element: <CategoriasPage /> },
-      { path: 'categorias/:categoryId', element: <ProfesionalesPage /> },
-      { path: 'profesionales/:professionalId', element: <DetalleProfesionalPage /> },
-      { path: 'solicitudes', element: <MisSolicitudesPage /> },
-      { path: 'solicitudes/nueva', element: <NuevaSolicitudPage /> },
-      { path: 'solicitudes/:requestId', element: <SeguimientoPage /> },
-      { path: 'solicitudes/:requestId/confirmar', element: <ConfirmacionPage /> },
-      { path: 'solicitudes/:requestId/calificar', element: <CalificacionPage /> },
-      { path: 'solicitudes/:requestId/pago', element: <PagoPage /> },
+      { index: true, lazy: from(clientePages, 'ClienteInicioPage') },
+      { path: 'categorias', lazy: from(clientePages, 'CategoriasPage') },
+      { path: 'categorias/:categoryId', lazy: from(clientePages, 'ProfesionalesPage') },
+      { path: 'profesionales/:professionalId', lazy: from(clientePages, 'DetalleProfesionalPage') },
+      { path: 'solicitudes', lazy: from(clientePages, 'MisSolicitudesPage') },
+      { path: 'solicitudes/nueva', lazy: from(clientePages, 'NuevaSolicitudPage') },
+      { path: 'solicitudes/:requestId', lazy: from(clientePages, 'SeguimientoPage') },
+      { path: 'solicitudes/:requestId/confirmar', lazy: from(clientePages, 'ConfirmacionPage') },
+      { path: 'solicitudes/:requestId/calificar', lazy: from(clientePages, 'CalificacionPage') },
+      { path: 'solicitudes/:requestId/pago', lazy: from(clientePages, 'PagoPage') },
     ],
   },
   {
     path: '/profesional',
-    element: (
-      <RequireRole role="profesional">
-        <AppShell role="profesional" />
-      </RequireRole>
-    ),
+    lazy: from(layouts, 'ProfesionalLayout'),
     children: [
-      { index: true, element: <ProfesionalInicioPage /> },
-      { path: 'solicitudes', element: <SolicitudesNuevasPage /> },
-      { path: 'solicitudes/:requestId', element: <DetalleTrabajoPage /> },
-      { path: 'trabajos', element: <TrabajosPage /> },
-      { path: 'trabajos/:requestId', element: <TrabajoEnProcesoPage /> },
-      { path: 'ganancias', element: <GananciasPage /> },
-      { path: 'perfil', element: <PerfilPage /> },
+      { index: true, lazy: from(profesionalPages, 'ProfesionalInicioPage') },
+      { path: 'solicitudes', lazy: from(profesionalPages, 'SolicitudesNuevasPage') },
+      { path: 'solicitudes/:requestId', lazy: from(profesionalPages, 'DetalleTrabajoPage') },
+      { path: 'trabajos', lazy: from(profesionalPages, 'TrabajosPage') },
+      { path: 'trabajos/:requestId', lazy: from(profesionalPages, 'TrabajoEnProcesoPage') },
+      { path: 'ganancias', lazy: from(profesionalPages, 'GananciasPage') },
+      { path: 'perfil', lazy: from(profesionalPages, 'PerfilPage') },
     ],
   },
   {
     path: '/admin',
-    element: (
-      <RequireRole role="admin">
-        <AppShell role="admin" />
-      </RequireRole>
-    ),
+    lazy: from(layouts, 'AdminLayout'),
     children: [
-      { index: true, element: <AdminDashboardPage /> },
-      { path: 'usuarios', element: <AdminUsuariosPage /> },
-      { path: 'profesionales', element: <AdminProfesionalesPage /> },
-      { path: 'solicitudes', element: <AdminSolicitudesPage /> },
-      { path: 'finanzas', element: <AdminFinanzasPage /> },
-      { path: 'configuracion', element: <AdminConfiguracionPage /> },
+      { index: true, lazy: from(adminPages, 'AdminDashboardPage') },
+      { path: 'usuarios', lazy: from(adminPages, 'AdminUsuariosPage') },
+      { path: 'profesionales', lazy: from(adminPages, 'AdminProfesionalesPage') },
+      { path: 'solicitudes', lazy: from(adminPages, 'AdminSolicitudesPage') },
+      { path: 'finanzas', lazy: from(adminPages, 'AdminFinanzasPage') },
+      { path: 'configuracion', lazy: from(adminPages, 'AdminConfiguracionPage') },
     ],
   },
 ]

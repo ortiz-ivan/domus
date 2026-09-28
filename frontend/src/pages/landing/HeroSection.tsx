@@ -14,6 +14,9 @@ export function HeroSection({ searchRef }: { searchRef: Ref<HTMLDivElement> }) {
     <section id="inicio" className="relative isolate overflow-hidden scroll-mt-20">
       <img
         src="/images/hero.webp"
+        // El navegador elige según el ancho de pantalla: en el celular baja 34 a 69 KB en vez de 122 KB
+        srcSet="/images/hero-768.webp 768w, /images/hero-1280.webp 1280w, /images/hero.webp 1920w"
+        sizes="100vw"
         alt=""
         width={1920}
         height={1280}

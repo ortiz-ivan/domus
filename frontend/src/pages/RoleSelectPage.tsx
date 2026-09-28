@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, HardHat, RotateCcw, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ROLE_HOME, ROLE_LABELS } from '@/app/navigation'
 import { Logo } from '@/components/Logo'
@@ -27,6 +28,7 @@ export function RoleSelectPage() {
 
   const suggested = isRole(params.get('rol')) ? (params.get('rol') as Role) : null
   const next = params.get('next')
+  const auto = params.get('como')
 
   const enter = (role: Role) => {
     login(DEMO_USER_IDS[role])
@@ -34,9 +36,18 @@ export function RoleSelectPage() {
     navigate(next?.startsWith(ROLE_HOME[role]) ? next : ROLE_HOME[role])
   }
 
+  // /ingresar?como=profesional entra directo: lo usan los controles del presentador al abrir otra pestaña
+  useEffect(() => {
+    if (!isRole(auto)) return
+    login(DEMO_USER_IDS[auto])
+    navigate(ROLE_HOME[auto], { replace: true })
+  }, [auto, login, navigate])
+
   const reset = () => {
     if (window.confirm('¿Reiniciar la demo? Se pierden las solicitudes, calificaciones y pagos creados.')) resetDemo()
   }
+
+  if (isRole(auto)) return null
 
   return (
     <div className="flex min-h-dvh flex-col">

@@ -1,4 +1,3 @@
-import { loginPath } from '@/app/paths'
 import { ProCard } from '@/components/ProCard'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf } from '@/store/selectors'
@@ -26,7 +25,7 @@ export function TopProsSection() {
                 professional={professional}
                 rating={rating}
                 categoryName={categories.find((c) => c.id === professional.categoryIds[0])?.name}
-                to={loginPath({ rol: 'cliente', next: `/cliente/profesionales/${professional.id}` })}
+                to={`/profesionales/${professional.id}`}
               />
             </li>
           ))}

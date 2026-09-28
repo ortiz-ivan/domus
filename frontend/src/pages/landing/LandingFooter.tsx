@@ -17,9 +17,9 @@ export function LandingFooter() {
           <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             {categories.map((c) => (
               <li key={c.id}>
-                <a href="#servicios" className="hover:text-white">
+                <Link to={`/servicios/${c.id}`} className="hover:text-white">
                   {c.name}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -28,14 +28,14 @@ export function LandingFooter() {
           <h2 className="font-heading text-sm font-semibold text-white">Domus</h2>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <a href="#como-funciona" className="hover:text-white">
+              <Link to="/#como-funciona" className="hover:text-white">
                 Cómo funciona
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#profesionales" className="hover:text-white">
+              <Link to="/#profesionales" className="hover:text-white">
                 Soy profesional
-              </a>
+              </Link>
             </li>
             <li>
               <Link to="/ingresar" className="hover:text-white">

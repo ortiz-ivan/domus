@@ -154,6 +154,13 @@ const requests: ServiceRequest[] = [
     address: 'Av. España 1234', city: 'Asunción', date: dateOnly(-10), timeSlot: 'manana',
     status: 'pagada', history: history(['pendiente', 12], ['aceptada', 12], ['en_proceso', 10], ['terminada', 10], ['confirmada', 10], ['pagada', 10]), price: 250000, createdAt: daysAgo(12),
   },
+  // Lista para confirmar: permite mostrar confirmación → calificación → pago sin hacer todo el flujo en vivo
+  {
+    id: 'r-13', code: 'DOM-0996', clientId: 'u-cli-1', professionalId: 'p-10', categoryId: 'limpieza',
+    title: 'Limpieza profunda del departamento', description: 'Limpieza completa antes de recibir visitas: cocina, baños y vidrios.',
+    address: 'Av. España 1234', city: 'Asunción', date: dateOnly(-1), timeSlot: 'manana',
+    status: 'terminada', history: history(['pendiente', 3], ['aceptada', 3], ['en_proceso', 1], ['terminada', 1]), price: 220000, createdAt: daysAgo(3),
+  },
   // Del profesional demo (Carlos, plomería) con otros clientes
   {
     id: 'r-4', code: 'DOM-1000', clientId: 'u-cli-3', professionalId: 'p-1', categoryId: 'plomeria',

@@ -22,6 +22,10 @@ export interface NavItem {
   icon: LucideIcon
   /** Solo activo en la ruta exacta (para los "Inicio") */
   end?: boolean
+  /** Otras rutas (prefijos) que pertenecen a esta sección */
+  alsoActive?: string[]
+  /** Rutas bajo este prefijo que pertenecen a otra sección */
+  exclude?: string[]
   /** Contador de pendientes; lo completa AppShell con useNavBadges */
   badge?: NavBadge
 }
@@ -41,8 +45,9 @@ export const ROLE_LABELS: Record<Role, string> = {
 export const NAVIGATION: Record<Role, NavItem[]> = {
   cliente: [
     { to: '/cliente', label: 'Inicio', icon: House, end: true },
-    { to: '/cliente/categorias', label: 'Categorías', icon: LayoutGrid },
-    { to: '/cliente/solicitudes', label: 'Mis solicitudes', icon: ClipboardList },
+    // Elegir profesional y pedir el servicio son parte de "Categorías"
+    { to: '/cliente/categorias', label: 'Categorías', icon: LayoutGrid, alsoActive: ['/cliente/profesionales', '/cliente/solicitudes/nueva'] },
+    { to: '/cliente/solicitudes', label: 'Mis solicitudes', icon: ClipboardList, exclude: ['/cliente/solicitudes/nueva'] },
   ],
   profesional: [
     { to: '/profesional', label: 'Inicio', icon: House, end: true },
@@ -59,6 +64,15 @@ export const NAVIGATION: Record<Role, NavItem[]> = {
     { to: '/admin/finanzas', label: 'Finanzas', icon: Landmark },
     { to: '/admin/configuracion', label: 'Configuración', icon: Settings },
   ],
+}
+
+const within = (pathname: string, prefix: string) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+
+/** Si el ítem del menú corresponde a la pantalla actual */
+export function isNavItemActive(item: NavItem, pathname: string): boolean {
+  if (item.exclude?.some((p) => within(pathname, p))) return false
+  if (item.end) return pathname === item.to
+  return within(pathname, item.to) || Boolean(item.alsoActive?.some((p) => within(pathname, p)))
 }
 
 /** Máximo de ítems en la barra inferior móvil; con más se usa menú lateral */

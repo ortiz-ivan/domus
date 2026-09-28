@@ -1,6 +1,7 @@
 import { ArrowLeft, Pencil } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { SERVICE_PARAM } from '@/app/serviceParam'
 import { Avatar } from '@/components/ui/Avatar'
 import { BackLink } from '@/components/ui/BackLink'
 import { Button } from '@/components/ui/Button'
@@ -77,11 +78,14 @@ export function NuevaSolicitudPage() {
   const professional = useDemoStore((s) => s.professionals.find((p) => p.id === params.get('profesional')))
   const createRequest = useDemoStore((s) => s.createRequest)
 
+  // Si viene de "Trabajos más pedidos", el trabajo llega elegido (si el profesional lo ofrece)
+  const preselected = professional?.categoryIds.find((id) => dir.category(id)?.services.includes(params.get(SERVICE_PARAM) ?? ''))
+
   const [step, setStep] = useState(0)
   const [errors, setErrors] = useState<Errors>({})
   const [form, setForm] = useState<FormState>({
-    service: '',
-    categoryId: professional?.categoryIds[0] ?? '',
+    service: preselected ? params.get(SERVICE_PARAM)! : '',
+    categoryId: preselected ?? professional?.categoryIds[0] ?? '',
     customTitle: '',
     description: '',
     when: '',
