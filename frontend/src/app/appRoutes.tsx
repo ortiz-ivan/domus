@@ -46,6 +46,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'trabajos/:requestId', lazy: from(profesionalPages, 'TrabajoEnProcesoPage') },
       { path: 'ganancias', lazy: from(profesionalPages, 'GananciasPage') },
       { path: 'perfil', lazy: from(profesionalPages, 'PerfilPage') },
+      { path: 'membresia', lazy: from(profesionalPages, 'MembresiaPage') },
     ],
   },
   {

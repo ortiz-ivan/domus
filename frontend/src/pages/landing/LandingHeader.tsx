@@ -7,7 +7,8 @@ import { SearchForm } from '@/components/SearchForm'
 const LINKS = [
   { href: '#servicios', label: 'Servicios' },
   { href: '#como-funciona', label: 'Cómo funciona' },
-  { href: '#profesionales', label: 'Soy profesional' },
+  // Página propia, no una sección de la portada
+  { href: '/para-profesionales', label: 'Soy profesional' },
 ]
 
 interface LandingHeaderProps {
@@ -53,7 +54,11 @@ export function LandingHeader({ showSearch = false, onLanding = true }: LandingH
               <ul className="flex gap-1">
                 {LINKS.map((link) => (
                   <li key={link.href}>
-                    {onLanding ? (
+                    {link.href.startsWith('/') ? (
+                      <Link to={link.href} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    ) : onLanding ? (
                       <a href={link.href} className={linkClass}>
                         {link.label}
                       </a>

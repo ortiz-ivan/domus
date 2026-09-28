@@ -1,5 +1,6 @@
 import type {
   Category,
+  PlanId,
   Payment,
   PlatformSettings,
   Professional,
@@ -94,7 +95,7 @@ const admins: User[] = [
   { id: 'u-adm-1', role: 'admin', name: 'Ana Martínez', email: 'admin@domus.com.py', phone: '021 600 700', city: 'Asunción', createdAt: daysAgo(200), active: true },
 ]
 
-interface ProSeed extends Omit<Professional, 'userId'> {
+interface ProSeed extends Omit<Professional, 'userId' | 'plan'> {
   email: string
   phone: string
   joinedDaysAgo: number
@@ -115,11 +116,127 @@ const proSeeds: ProSeed[] = [
   { id: 'p-12', name: 'Gustavo Paredes', categoryIds: ['electricidad', 'carpinteria'], bio: 'Mantenimiento general del hogar: electricidad y arreglos de carpintería.', yearsExperience: 3, basePrice: 110000, city: 'Fernando de la Mora', verified: false, jobsCompleted: 15, pastRating: { average: 4.3, count: 8 }, email: 'gustavo.paredes@demo.com', phone: '0976 222 111', joinedDaysAgo: 25 },
 ]
 
-const professionals: Professional[] = proSeeds.map(
-  ({ email: _email, phone: _phone, joinedDaysAgo: _joined, ...pro }, i) => ({ ...pro, userId: `u-pro-${i + 1}` }),
+// Membresías iniciales. Carlos (el profesional demo) arranca en Básico y Ramón, el otro plomero, en Destacado:
+// en la demo Carlos sube de plan y pasa a aparecer primero en Plomería.
+const PRO_PLANS: Partial<Record<string, PlanId>> = { 'p-2': 'destacado', 'p-3': 'premium', 'p-5': 'destacado', 'p-8': 'premium', 'p-9': 'destacado' }
+
+// ---------------------------------------------------------------------------
+// Más profesionales: entre 12 y 16 por categoría (contando los de arriba), con semilla fija.
+
+const FIRST_NAMES = [
+  'Alejandro', 'Alberto', 'Blas', 'César', 'Cristian', 'Daniel', 'Derlis', 'Eduardo', 'Emilio', 'Enrique', 'Esteban', 'Félix',
+  'Francisco', 'Germán', 'Gilberto', 'Héctor', 'Hernán', 'Ignacio', 'Javier', 'Joel', 'José', 'Juan', 'Julio', 'Leonardo',
+  'Luis', 'Marcelo', 'Mario', 'Matías', 'Nelson', 'Néstor', 'Osvaldo', 'Pedro', 'Rafael', 'Raúl', 'Ricardo', 'Roberto',
+  'Rubén', 'Santiago', 'Sergio', 'Tomás', 'Vicente', 'Walter', 'Ana', 'Beatriz', 'Carolina', 'Claudia', 'Elena', 'Gloria',
+  'Graciela', 'Laura', 'Liz', 'Marta', 'Mónica', 'Natalia', 'Nilda', 'Paola', 'Raquel', 'Silvia', 'Teresa', 'Verónica',
+] as const
+
+const LAST_NAMES = [
+  'Acuña', 'Alonso', 'Amarilla', 'Aranda', 'Arce', 'Bareiro', 'Benegas', 'Bogado', 'Brítez', 'Caballero', 'Cabral', 'Candia',
+  'Cardozo', 'Chamorro', 'Colmán', 'Coronel', 'Cuevas', 'Díaz', 'Domínguez', 'Escobar', 'Espínola', 'Estigarribia', 'Florentín',
+  'Franco', 'Galeano', 'García', 'Gauto', 'González', 'Insaurralde', 'Jara', 'Ledesma', 'López', 'Maldonado', 'Martínez',
+  'Medina', 'Mendoza', 'Mereles', 'Morínigo', 'Ocampos', 'Orué', 'Ovelar', 'Peralta', 'Portillo', 'Ramírez', 'Recalde',
+  'Ríos', 'Rodríguez', 'Romero', 'Ruiz Díaz', 'Salinas', 'Sánchez', 'Sanabria', 'Sosa', 'Talavera', 'Torres', 'Valdez',
+  'Vázquez', 'Velázquez', 'Villalba', 'Zárate',
+] as const
+
+/** Biografías por rubro y rango de precio por visita (en miles de guaraníes) */
+const TRADES: Record<string, { bios: string[]; price: [number, number] }> = {
+  plomeria: {
+    bios: ['Reparación de pérdidas, destapaciones y cambio de griferías.', 'Instalaciones sanitarias completas para casas y departamentos.', 'Plomería de urgencia y mantenimiento preventivo de cañerías.'],
+    price: [100, 200],
+  },
+  electricidad: {
+    bios: ['Instalaciones domiciliarias, tomas, llaves y tableros.', 'Electricista matriculado. Iluminación, cableado y puesta a tierra.', 'Reparaciones eléctricas y colocación de ventiladores y luminarias.'],
+    price: [110, 220],
+  },
+  aire: {
+    bios: ['Instalación y mantenimiento de equipos split.', 'Limpieza profunda de aires acondicionados y carga de gas.', 'Técnico en refrigeración con repuestos originales.'],
+    price: [150, 280],
+  },
+  pintura: {
+    bios: ['Pintura de interiores y exteriores con terminaciones prolijas.', 'Tratamiento de humedad, empastado y pintura.', 'Impermeabilización de techos y pintura de fachadas.'],
+    price: [180, 350],
+  },
+  carpinteria: {
+    bios: ['Muebles a medida y placares.', 'Reparación de puertas, ventanas y muebles de madera.', 'Carpintería general y armado de muebles.'],
+    price: [150, 300],
+  },
+  cerrajeria: {
+    bios: ['Aperturas de urgencia y cambio de cerraduras.', 'Cerraduras de seguridad y copias de llaves.', 'Cerrajería del hogar las 24 horas.'],
+    price: [80, 160],
+  },
+  limpieza: {
+    bios: ['Limpieza profunda de casas y departamentos.', 'Limpieza post obra y de fin de mudanza.', 'Limpieza de tapizados, alfombras y colchones.'],
+    price: [120, 250],
+  },
+  jardineria: {
+    bios: ['Corte de césped y mantenimiento de jardines.', 'Poda de árboles y retiro de ramas.', 'Diseño y mantenimiento de jardines y patios.'],
+    price: [90, 200],
+  },
+}
+
+/** Mismo usuario de email para "María José Ruiz Díaz" → "mariajose.ruizdiaz" */
+const emailSlug = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z]/g, '')
+
+function generateProfessionals(start: number): ProSeed[] {
+  const random = seededRandom(1811)
+  const between = (min: number, max: number) => min + Math.floor(random() * (max - min + 1))
+  const pickOne = <T,>(items: readonly T[]) => items[Math.floor(random() * items.length)]
+  const usedNames = new Set(proSeeds.map((p) => p.name))
+  const out: ProSeed[] = []
+  let n = start
+
+  for (const category of categories) {
+    const existing = proSeeds.filter((p) => p.categoryIds.includes(category.id)).length
+    const trade = TRADES[category.id]
+    const target = between(12, 16)
+    for (let i = existing; i < target; i++) {
+      let name = ''
+      do name = `${pickOne(FIRST_NAMES)} ${pickOne(LAST_NAMES)}`
+      while (usedNames.has(name))
+      usedNames.add(name)
+
+      const id = `p-${n++}`
+      const years = between(1, 25)
+      const jobs = between(5, 40) + years * between(2, 9)
+      const plan: PlanId = random() < 0.08 ? 'premium' : random() < 0.17 ? 'destacado' : 'basico'
+      // Ningún plomero generado es Premium: en la demo, Carlos pasa a Premium y queda primero
+      PRO_PLANS[id] = category.id === 'plomeria' && plan === 'premium' ? 'destacado' : plan
+      const [first, last] = [name.split(' ')[0], name.split(' ').slice(1).join(' ')]
+
+      out.push({
+        id,
+        name,
+        categoryIds: [category.id],
+        bio: pickOne(trade.bios),
+        yearsExperience: years,
+        basePrice: between(trade.price[0] / 10, trade.price[1] / 10) * 10000,
+        city: pickOne(CITIES),
+        verified: random() < 0.8,
+        jobsCompleted: jobs,
+        pastRating: { average: between(40, 49) / 10, count: Math.max(2, Math.round(jobs * (0.5 + random() * 0.3))) },
+        email: `${emailSlug(first)}.${emailSlug(last)}@demo.com`,
+        phone: `09${between(71, 86)} ${String(between(100, 999))} ${String(between(100, 999))}`,
+        joinedDaysAgo: between(20, 400),
+      })
+    }
+  }
+  return out
+}
+
+const allProSeeds: ProSeed[] = [...proSeeds, ...generateProfessionals(proSeeds.length + 1)]
+
+const professionals: Professional[] = allProSeeds.map(
+  ({ email: _email, phone: _phone, joinedDaysAgo: _joined, ...pro }, i) => ({ ...pro, userId: `u-pro-${i + 1}`, plan: PRO_PLANS[pro.id] ?? 'basico' }),
 )
 
-const proUsers: User[] = proSeeds.map((pro, i) => ({
+const proUsers: User[] = allProSeeds.map((pro, i) => ({
   id: `u-pro-${i + 1}`,
   role: 'profesional',
   name: pro.name,

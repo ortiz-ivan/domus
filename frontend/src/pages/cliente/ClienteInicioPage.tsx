@@ -5,6 +5,7 @@ import { ProCard } from '@/components/ProCard'
 import { RequestCard } from '@/components/RequestCard'
 import { SearchForm } from '@/components/SearchForm'
 import { ACTIVE_STATUSES } from '@/lib/status'
+import { compareRecommended } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useCurrentUser, useDirectory } from '@/store/selectors'
 import { clientNextAction } from './nextAction'
@@ -35,7 +36,7 @@ export function ClienteInicioPage() {
   const topPros = professionals
     .filter((p) => p.verified)
     .map((p) => ({ professional: p, rating: ratingOf(reviews, p) }))
-    .sort((a, b) => b.rating.average - a.rating.average)
+    .sort(compareRecommended)
     .slice(0, 3)
 
   return (
@@ -86,7 +87,7 @@ export function ClienteInicioPage() {
       </section>
 
       <section>
-        <SectionHeader title="Profesionales mejor calificados" />
+        <SectionHeader title="Profesionales recomendados" />
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {topPros.map(({ professional, rating }) => (
             <li key={professional.id}>

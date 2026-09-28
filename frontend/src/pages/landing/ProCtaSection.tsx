@@ -1,8 +1,13 @@
-import { CheckCircle2 } from 'lucide-react'
-import { loginPath } from '@/app/paths'
+import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Link } from 'react-router'
 import { LinkButton } from '@/components/ui/Button'
 
-const BENEFITS = ['Recibí solicitudes de clientes de tu zona', 'Aceptá solo los trabajos que te convienen', 'Cobrá de forma segura y seguí tus ganancias']
+const BENEFITS = [
+  'Recibí solicitudes de clientes de tu zona',
+  'Aceptá solo los trabajos que te convienen',
+  'Cobrá de forma segura y seguí tus ganancias',
+  'Destacá tu perfil con una membresía',
+]
 
 export function ProCtaSection() {
   return (
@@ -28,9 +33,18 @@ export function ProCtaSection() {
                 </li>
               ))}
             </ul>
-            <LinkButton to={loginPath({ rol: 'profesional' })} variant="accent" size="lg" className="mt-8 rounded-full">
-              Sumate como profesional
-            </LinkButton>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <LinkButton to="/para-profesionales" variant="accent" size="lg" className="rounded-full">
+                Sumate como profesional
+              </LinkButton>
+              <Link
+                to="/para-profesionales#planes"
+                className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/30 px-6 font-semibold text-white transition-colors duration-150 hover:bg-white/10"
+              >
+                Ver planes
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

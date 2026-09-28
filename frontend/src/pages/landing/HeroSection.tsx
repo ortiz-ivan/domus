@@ -1,15 +1,17 @@
 import { Lock, Star } from 'lucide-react'
 import type { Ref } from 'react'
 import { SearchForm } from '@/components/SearchForm'
-
-// Cifras de marketing ficticias, solo para la demo
-const STATS = [
-  { value: '4.8', star: true, label: 'de +2.000 reseñas' },
-  { value: '+150', label: 'profesionales verificados' },
-  { value: '+3.000', label: 'trabajos realizados' },
-]
+import { roundedDown, usePlatformStats } from '@/lib/platformStats'
 
 export function HeroSection({ searchRef }: { searchRef: Ref<HTMLDivElement> }) {
+  // Calculadas desde los datos de la demo: coinciden con lo que se ve al recorrer las categorías
+  const stats = usePlatformStats()
+  const STATS = [
+    { value: stats.averageRating.toFixed(1), star: true, label: `de ${roundedDown(stats.reviews)} reseñas` },
+    { value: String(stats.verified), label: 'profesionales verificados' },
+    { value: roundedDown(stats.jobs), label: 'trabajos realizados' },
+  ]
+
   return (
     <section id="inicio" className="relative isolate overflow-hidden scroll-mt-20">
       <img

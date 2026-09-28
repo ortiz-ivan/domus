@@ -228,6 +228,23 @@ describe('integridad de los datos semilla', () => {
     expect(professionals.some((p) => p.userId === DEMO_USER_IDS.profesional)).toBe(true)
   })
 
+  it('cada categoría tiene entre 12 y 16 profesionales', () => {
+    const { categories, professionals } = store()
+    for (const c of categories) {
+      const count = professionals.filter((p) => p.categoryIds.includes(c.id)).length
+      expect(count, c.id).toBeGreaterThanOrEqual(12)
+      expect(count, c.id).toBeLessThanOrEqual(16)
+    }
+  })
+
+  it('los profesionales no repiten nombre ni email, y ningún plomero es Premium de entrada', () => {
+    const { professionals, users } = store()
+    expect(new Set(professionals.map((p) => p.name)).size).toBe(professionals.length)
+    const proEmails = users.filter((u) => u.role === 'profesional').map((u) => u.email)
+    expect(new Set(proEmails).size).toBe(proEmails.length)
+    expect(professionals.filter((p) => p.categoryIds.includes('plomeria') && p.plan === 'premium')).toEqual([])
+  })
+
   it('el cliente demo tiene solicitudes en distintos estados', () => {
     const own = store().requests.filter((r) => r.clientId === DEMO_USER_IDS.cliente).map((r) => r.status)
     expect(own).toEqual(expect.arrayContaining(['pendiente', 'en_proceso', 'terminada', 'pagada']))

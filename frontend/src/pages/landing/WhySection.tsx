@@ -150,7 +150,12 @@ function ProsScreen() {
                 </p>
               </div>
             </div>
-            {i === 0 && <span className="mt-2 inline-block rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-text">Top Domus</span>}
+            {i === 0 && (
+              <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold">
+                <Star className="size-2.5 fill-accent text-accent" />
+                Top Domus
+              </span>
+            )}
             <div className="mt-2 flex items-end justify-between">
               <p className="text-[10px] text-muted-foreground">
                 Desde <span className="block font-heading text-[13px] font-bold text-foreground">{formatGs(p.basePrice)}</span>

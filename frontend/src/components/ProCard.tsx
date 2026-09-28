@@ -1,9 +1,10 @@
-import { BadgeCheck, Briefcase, MapPin } from 'lucide-react'
+import { BadgeCheck, Briefcase, MapPin, Sparkles, Star } from 'lucide-react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { formatGs } from '@/lib/format'
+import { planOf } from '@/lib/plans'
 import type { RatingSummary } from '@/store/selectors'
 import type { Professional } from '@/types'
 
@@ -15,6 +16,18 @@ interface ProCardProps {
   to: string
   /** compact: una fila, para listas dentro de otros paneles */
   variant?: 'card' | 'compact'
+}
+
+/** Insignia de la membresía: Premium en dorado lleno, Destacado en dorado suave */
+function PlanBadge({ professional }: { professional: Professional }) {
+  const badge = planOf(professional.plan).badge
+  if (!badge) return null
+  return (
+    <Badge tone="accent" className={professional.plan === 'premium' ? 'bg-accent text-on-accent' : undefined}>
+      <Sparkles className="size-3.5" aria-hidden="true" />
+      {badge}
+    </Badge>
+  )
 }
 
 function VerifiedIcon() {
@@ -41,6 +54,11 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
             {professional.name}
             {professional.verified && <VerifiedIcon />}
           </p>
+          {professional.plan !== 'basico' && (
+            <p className="mt-0.5">
+              <PlanBadge professional={professional} />
+            </p>
+          )}
           <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             <RatingStars value={rating.average} count={rating.count} />
             <span>· {professional.jobsCompleted} trabajos</span>
@@ -72,7 +90,14 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {rating.average >= 4.8 && rating.count > 0 && <Badge tone="accent">Top Domus</Badge>}
+        <PlanBadge professional={professional} />
+        {/* Se gana con la calificación: estilo neutro para no confundirla con las insignias pagas (doradas) */}
+        {rating.average >= 4.8 && rating.count > 0 && (
+          <Badge className="border border-border bg-card text-foreground">
+            <Star className="size-3.5 fill-accent text-accent" aria-hidden="true" />
+            Top Domus
+          </Badge>
+        )}
         <Badge>
           <Briefcase className="size-3.5" aria-hidden="true" />
           {professional.jobsCompleted} trabajos

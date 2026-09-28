@@ -4,6 +4,7 @@ import { createSeed, type DemoData } from '@/data/seed'
 import { canTransition } from '@/lib/status'
 import type {
   PaymentMethod,
+  PlanId,
   PlatformSettings,
   Professional,
   RequestStatus,
@@ -24,6 +25,8 @@ interface DemoActions {
   payRequest: (requestId: string, method: PaymentMethod) => boolean
   updateProfessional: (id: string, changes: Partial<Omit<Professional, 'id' | 'userId'>>) => void
   setProfessionalVerified: (id: string, verified: boolean) => void
+  /** Membresía simulada: no se cobra, solo cambia la visibilidad */
+  setProfessionalPlan: (id: string, plan: PlanId) => void
   setUserActive: (userId: string, active: boolean) => void
   updateSettings: (changes: Partial<PlatformSettings>) => void
   resetDemo: () => void
@@ -116,6 +119,9 @@ export const useDemoStore = create<DemoState>()(
       setProfessionalVerified: (id, verified) =>
         set((s) => ({ professionals: s.professionals.map((p) => (p.id === id ? { ...p, verified } : p)) })),
 
+      setProfessionalPlan: (id, plan) =>
+        set((s) => ({ professionals: s.professionals.map((p) => (p.id === id ? { ...p, plan } : p)) })),
+
       setUserActive: (userId, active) =>
         set((s) => ({ users: s.users.map((u) => (u.id === userId ? { ...u, active } : u)) })),
 
@@ -126,7 +132,7 @@ export const useDemoStore = create<DemoState>()(
     {
       name: STORAGE_KEY,
       // Subir la versión cuando cambia la forma de los datos: descarta lo guardado y recarga el seed
-      version: 4,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       migrate: () => createSeed() as DemoState,
     },

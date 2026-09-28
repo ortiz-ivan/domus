@@ -1,8 +1,8 @@
-import { BadgeCheck, Clock, Star } from 'lucide-react'
+import { BadgeCheck, Clock, Sparkles, Star } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -10,6 +10,7 @@ import { RatingStars } from '@/components/ui/RatingStars'
 import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
 import { formatDate } from '@/lib/format'
+import { planOf } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useCurrentProfessional, useCurrentUser, useDirectory } from '@/store/selectors'
 import { toast } from '@/store/toast'
@@ -131,6 +132,18 @@ export function PerfilPage() {
                   Verificación en revisión
                 </Badge>
               )}
+            </div>
+            <div className="mt-5 rounded-xl bg-accent-soft p-4 text-left">
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-accent-text">
+                <Sparkles className="size-4" aria-hidden="true" />
+                Plan {planOf(professional.plan).name}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {professional.plan === 'basico' ? 'Destacá tu perfil para aparecer antes en tu categoría.' : 'Tu perfil aparece destacado en tu categoría.'}
+              </p>
+              <LinkButton to="/profesional/membresia" variant={professional.plan === 'basico' ? 'primary' : 'outline'} size="sm" className="mt-3 w-full">
+                {professional.plan === 'basico' ? 'Ver planes' : 'Gestionar membresía'}
+              </LinkButton>
             </div>
             <dl className="mt-5 space-y-2 border-t border-border pt-5 text-left text-sm">
               <div>

@@ -5,6 +5,7 @@ import { ProCard } from '@/components/ProCard'
 import { ProfessionalProfile } from '@/components/ProfessionalProfile'
 import { BackLink } from '@/components/ui/BackLink'
 import { MissingResource } from '@/pages/NotFoundPage'
+import { compareRecommended } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useDirectory } from '@/store/selectors'
 import { LandingFooter } from './LandingFooter'
@@ -27,7 +28,7 @@ export function PublicProfesionalPage() {
     ? professionals
         .filter((p) => p.id !== professional.id && p.categoryIds.includes(professional.categoryIds[0]))
         .map((p) => ({ professional: p, rating: ratingOf(reviews, p) }))
-        .sort((a, b) => b.rating.average - a.rating.average)
+        .sort(compareRecommended)
         .slice(0, 3)
     : []
 

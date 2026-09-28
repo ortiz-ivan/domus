@@ -4,13 +4,16 @@ import { ProCard } from '@/components/ProCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Select } from '@/components/ui/Field'
 import { cn } from '@/lib/cn'
+import { compareRecommended } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf } from '@/store/selectors'
 import type { Category } from '@/types'
 
-type SortKey = 'rating' | 'price' | 'experience'
+type SortKey = 'recommended' | 'rating' | 'price' | 'experience'
 
 const SORT_LABELS: Record<SortKey, string> = {
+  // Planes Destacado y Premium primero (llevan insignia), después por calificación
+  recommended: 'Recomendados',
   rating: 'Mejor calificados',
   price: 'Menor precio',
   experience: 'Más experiencia',
@@ -32,7 +35,7 @@ interface CategoryProfessionalsProps {
 export function CategoryProfessionals({ category, service, onServiceChange, profilePath }: CategoryProfessionalsProps) {
   const professionals = useDemoStore((s) => s.professionals)
   const reviews = useDemoStore((s) => s.reviews)
-  const [sort, setSort] = useState<SortKey>('rating')
+  const [sort, setSort] = useState<SortKey>('recommended')
   const [onlyVerified, setOnlyVerified] = useState(false)
 
   const list = professionals
@@ -43,7 +46,9 @@ export function CategoryProfessionals({ category, service, onServiceChange, prof
         ? a.professional.basePrice - b.professional.basePrice
         : sort === 'experience'
           ? b.professional.yearsExperience - a.professional.yearsExperience
-          : b.rating.average - a.rating.average || b.rating.count - a.rating.count,
+          : sort === 'recommended'
+            ? compareRecommended(a, b)
+            : b.rating.average - a.rating.average || b.rating.count - a.rating.count,
     )
 
   return (

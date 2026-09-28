@@ -33,8 +33,13 @@ export function LandingFooter() {
               </Link>
             </li>
             <li>
-              <Link to="/#profesionales" className="hover:text-white">
+              <Link to="/para-profesionales" className="hover:text-white">
                 Soy profesional
+              </Link>
+            </li>
+            <li>
+              <Link to="/para-profesionales#planes" className="hover:text-white">
+                Planes para profesionales
               </Link>
             </li>
             <li>

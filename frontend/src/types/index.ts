@@ -23,6 +23,9 @@ export interface Category {
   services: string[]
 }
 
+/** Membresía del profesional: define su visibilidad en la plataforma (ver lib/plans.ts) */
+export type PlanId = 'basico' | 'destacado' | 'premium'
+
 export interface Professional {
   id: string
   /** Usuario asociado (rol profesional) */
@@ -38,6 +41,7 @@ export interface Professional {
   jobsCompleted: number
   /** Reseñas históricas previas a la demo (se suman a las reseñas reales) */
   pastRating: { average: number; count: number }
+  plan: PlanId
 }
 
 export type RequestStatus =

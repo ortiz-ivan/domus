@@ -54,7 +54,7 @@ export const NAVIGATION: Record<Role, NavItem[]> = {
     { to: '/profesional/solicitudes', label: 'Solicitudes', icon: Inbox },
     { to: '/profesional/trabajos', label: 'Trabajos', icon: Hammer },
     { to: '/profesional/ganancias', label: 'Ganancias', icon: Wallet },
-    { to: '/profesional/perfil', label: 'Perfil', icon: UserRound },
+    { to: '/profesional/perfil', label: 'Perfil', icon: UserRound, alsoActive: ['/profesional/membresia'] },
   ],
   admin: [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },

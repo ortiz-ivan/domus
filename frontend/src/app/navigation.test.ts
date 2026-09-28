@@ -25,6 +25,7 @@ describe('ítem activo del menú', () => {
     ['/profesional/solicitudes/r-4', 'Solicitudes'],
     ['/profesional/trabajos/r-5', 'Trabajos'],
     ['/profesional/perfil', 'Perfil'],
+    ['/profesional/membresia', 'Perfil'],
   ])('profesional en %s → %s', (pathname, label) => {
     expect(activeLabel('profesional', pathname)).toEqual([label])
   })

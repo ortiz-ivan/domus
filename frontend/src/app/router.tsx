@@ -12,6 +12,8 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 // Páginas públicas: se ven sin iniciar sesión, también en el deploy "solo landing"
 const publicRoutes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
+  // Carga diferida: la portada no descarga la landing para profesionales
+  { path: '/para-profesionales', lazy: { Component: async () => (await import('@/pages/landing/pros/ProLandingPage')).ProLandingPage } },
   { path: '/servicios/:categoryId', element: <PublicCategoryPage /> },
   { path: '/profesionales/:professionalId', element: <PublicProfesionalPage /> },
 ]

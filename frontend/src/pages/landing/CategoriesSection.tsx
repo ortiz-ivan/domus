@@ -7,6 +7,7 @@ import { ProCard } from '@/components/ProCard'
 import { RotationProgress, RotationToggle } from '@/components/ui/RotationProgress'
 import { cn } from '@/lib/cn'
 import { useAutoRotate } from '@/lib/useAutoRotate'
+import { compareRecommended } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf } from '@/store/selectors'
 
@@ -27,7 +28,7 @@ export function CategoriesSection() {
   const topPros = professionals
     .filter((p) => p.categoryIds.includes(active.id))
     .map((p) => ({ professional: p, rating: ratingOf(reviews, p) }))
-    .sort((a, b) => b.rating.average - a.rating.average || b.professional.jobsCompleted - a.professional.jobsCompleted)
+    .sort(compareRecommended)
     .slice(0, 3)
 
   const activeIndex = categories.findIndex((c) => c.id === active.id)
@@ -159,7 +160,7 @@ export function CategoriesSection() {
 
               {topPros.length > 0 && (
                 <div>
-                  <h3 className="mb-3 text-lg font-semibold">Mejor calificados en {active.name.toLowerCase()}</h3>
+                  <h3 className="mb-3 text-lg font-semibold">Recomendados en {active.name.toLowerCase()}</h3>
                   <ul className="flex flex-col gap-2">
                     {topPros.map(({ professional, rating }) => (
                       <li key={professional.id}>
