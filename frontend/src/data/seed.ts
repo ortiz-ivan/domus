@@ -83,6 +83,11 @@ const clients: User[] = [
   { id: 'u-cli-3', role: 'cliente', name: 'Lucía Fernández', email: 'lucia.fernandez@demo.com', phone: '0983 345 678', city: 'San Lorenzo', createdAt: daysAgo(60), active: true },
   { id: 'u-cli-4', role: 'cliente', name: 'Diego Ayala', email: 'diego.ayala@demo.com', phone: '0984 456 789', city: 'Lambaré', createdAt: daysAgo(30), active: false },
   { id: 'u-cli-5', role: 'cliente', name: 'Sofía Rojas', email: 'sofia.rojas@demo.com', phone: '0985 567 890', city: 'Fernando de la Mora', createdAt: daysAgo(12), active: true },
+  { id: 'u-cli-6', role: 'cliente', name: 'Martín Espínola', email: 'martin.espinola@demo.com', phone: '0986 678 901', city: 'Asunción', createdAt: daysAgo(170), active: true },
+  { id: 'u-cli-7', role: 'cliente', name: 'Carmen Aquino', email: 'carmen.aquino@demo.com', phone: '0981 789 012', city: 'Luque', createdAt: daysAgo(160), active: true },
+  { id: 'u-cli-8', role: 'cliente', name: 'Pablo Zárate', email: 'pablo.zarate@demo.com', phone: '0982 890 123', city: 'San Lorenzo', createdAt: daysAgo(150), active: true },
+  { id: 'u-cli-9', role: 'cliente', name: 'Gabriela Insfrán', email: 'gabriela.insfran@demo.com', phone: '0983 901 234', city: 'Lambaré', createdAt: daysAgo(140), active: true },
+  { id: 'u-cli-10', role: 'cliente', name: 'Rodrigo Cáceres', email: 'rodrigo.caceres@demo.com', phone: '0984 012 345', city: 'Asunción', createdAt: daysAgo(135), active: true },
 ]
 
 const admins: User[] = [
@@ -215,6 +220,86 @@ const reviews: Review[] = [
   { id: 'rv-5', requestId: 'r-12', professionalId: 'p-11', clientId: 'u-cli-1', rating: 4, comment: 'Dejó todo limpio después de la poda.', createdAt: daysAgo(28, 16) },
 ]
 
+// ---------------------------------------------------------------------------
+// Historial de los últimos 6 meses, para que tablas y gráficos tengan volumen.
+// Pseudoaleatorio con semilla fija: siempre genera los mismos datos.
+
+function seededRandom(seed: number) {
+  let a = seed
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+const REVIEW_COMMENTS: [number, string][] = [
+  [5, 'Excelente trabajo, muy prolijo y puntual.'],
+  [5, 'Llegó a horario y resolvió todo rápido. Lo recomiendo.'],
+  [5, 'Muy buena atención, explicó cada paso.'],
+  [4, 'Buen trabajo, el precio fue el acordado.'],
+  [5, 'Impecable. Voy a volver a llamarlo.'],
+  [4, 'Cumplió con lo pedido, se demoró un poco en llegar.'],
+  [5, 'Súper responsable y dejó todo limpio.'],
+  [3, 'El trabajo quedó bien, pero tuvo que volver al día siguiente.'],
+]
+
+const historicClients = clients.filter((c) => c.id !== DEMO_USER_IDS.cliente)
+const ADDRESSES = ['Av. Mcal. López 3200', 'Calle Palma 540', 'Av. Artigas 1850', 'Tte. Fariña 1120', 'Av. Brasilia 777', 'Calle Cerro Corá 950']
+
+function buildHistory(): { requests: ServiceRequest[]; reviews: Review[] } {
+  const random = seededRandom(2026)
+  const pick = <T,>(items: readonly T[]) => items[Math.floor(random() * items.length)]
+  const out: ServiceRequest[] = []
+  const outReviews: Review[] = []
+
+  for (let i = 0; i < 60; i++) {
+    // El profesional demo recibe más trabajos para que sus ganancias tengan historia
+    const pro = random() < 0.25 ? professionals[0] : pick(professionals)
+    const client = pick(historicClients)
+    const categoryId = pick(pro.categoryIds)
+    const category = categories.find((c) => c.id === categoryId)!
+    const days = 8 + Math.floor(random() * 172)
+    const price = Math.round((pro.basePrice * (1 + random() * 1.2)) / 10000) * 10000
+    const roll = random()
+    const history: StatusChange[] =
+      roll < 0.08
+        ? [{ status: 'pendiente', at: daysAgo(days + 1, 9) }, { status: 'cancelada', at: daysAgo(days, 11) }]
+        : roll < 0.14
+          ? [{ status: 'pendiente', at: daysAgo(days + 1, 9) }, { status: 'rechazada', at: daysAgo(days, 12) }]
+          : (['pendiente', 'aceptada', 'en_proceso', 'terminada', 'confirmada', 'pagada'] as const).map((status, step) => ({
+              status,
+              at: daysAgo(step < 2 ? days + 1 : days, 9 + step * 2),
+            }))
+    const id = `h-${i + 1}`
+    out.push({
+      id,
+      code: `DOM-0${800 + i * 2}`,
+      clientId: client.id,
+      professionalId: pro.id,
+      categoryId,
+      title: pick(category.services),
+      description: 'Solicitud registrada antes de la demo.',
+      address: pick(ADDRESSES),
+      city: client.city,
+      date: dateOnly(-days),
+      timeSlot: pick(['manana', 'tarde', 'noche'] as const),
+      status: history[history.length - 1].status,
+      history,
+      price,
+      createdAt: history[0].at,
+    })
+    if (history.length === 6 && random() < 0.6) {
+      const [rating, comment] = pick(REVIEW_COMMENTS)
+      outReviews.push({ id: `rv-h-${i + 1}`, requestId: id, professionalId: pro.id, clientId: client.id, rating, comment, createdAt: daysAgo(days, 20) })
+    }
+  }
+  return { requests: out, reviews: outReviews }
+}
+
+const historic = buildHistory()
+
 export const DEFAULT_SETTINGS: PlatformSettings = {
   commissionRate: 0.1,
   platformName: 'Domus',
@@ -240,9 +325,9 @@ export function createSeed(): DemoData {
     users: [...clients, ...proUsers, ...admins],
     categories,
     professionals,
-    requests,
-    reviews,
-    payments: paymentsFor(requests, DEFAULT_SETTINGS.commissionRate),
+    requests: [...requests, ...historic.requests],
+    reviews: [...reviews, ...historic.reviews],
+    payments: paymentsFor([...requests, ...historic.requests], DEFAULT_SETTINGS.commissionRate),
     settings: DEFAULT_SETTINGS,
   }
 }

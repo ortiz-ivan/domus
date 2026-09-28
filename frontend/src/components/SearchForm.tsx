@@ -10,11 +10,13 @@ import { loginPath } from '@/app/paths'
 
 interface SearchFormProps {
   variant?: 'hero' | 'compact'
+  /** login: landing pública (pasa por /ingresar). app: cliente ya logueado. */
+  destination?: 'login' | 'app'
   className?: string
 }
 
 /** Buscador del landing: interpreta la descripción y lleva al listado de la categoría (previo ingreso) */
-export function SearchForm({ variant = 'hero', className }: SearchFormProps) {
+export function SearchForm({ variant = 'hero', destination = 'login', className }: SearchFormProps) {
   const navigate = useNavigate()
   const categories = useDemoStore((s) => s.categories)
   const [query, setQuery] = useState('')
@@ -26,7 +28,7 @@ export function SearchForm({ variant = 'hero', className }: SearchFormProps) {
     event.preventDefault()
     const category = matchCategory(query, categories)
     const next = category ? `/cliente/categorias/${category.id}` : '/cliente/categorias'
-    navigate(loginPath({ next, rol: 'cliente' }))
+    navigate(destination === 'app' ? next : loginPath({ next, rol: 'cliente' }))
   }
 
   const cityField = (

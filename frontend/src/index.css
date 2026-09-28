@@ -32,6 +32,10 @@
   --color-destructive: #dc2626;
   --color-on-destructive: #ffffff;
 
+  /* Gráficos: validados con la skill dataviz (banda de luminosidad, croma, CVD y contraste) */
+  --color-chart: #305f99;
+  --color-chart-highlight: #b88a48;
+
   /* Movimiento */
   --animate-fade-in: fade-in 200ms ease-out;
 

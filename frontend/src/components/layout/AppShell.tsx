@@ -4,6 +4,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { BOTTOM_NAV_MAX, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
 import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/ui/Avatar'
+import { Toaster } from '@/components/ui/Toaster'
 import { cn } from '@/lib/cn'
 import { useCurrentUser } from '@/store/selectors'
 import { useSessionStore } from '@/store/session'
@@ -208,6 +209,7 @@ export function AppShell({ role }: { role: Role }) {
       </main>
 
       {useBottomNav ? <BottomNav items={items} /> : <MobileDrawer items={items} dialogRef={drawerRef} />}
+      <Toaster />
     </div>
   )
 }

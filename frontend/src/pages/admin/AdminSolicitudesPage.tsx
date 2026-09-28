@@ -1,13 +1,187 @@
-import { ScreenPlaceholder } from '@/components/ScreenPlaceholder'
+import { ClipboardList } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { RequestTimeline } from '@/components/RequestTimeline'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Dialog } from '@/components/ui/Dialog'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Select } from '@/components/ui/Field'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { SearchField } from '@/components/ui/SearchField'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
+import { normalize } from '@/lib/search'
+import { STATUS_META } from '@/lib/status'
 import { useDemoStore } from '@/store/demo'
+import { useDirectory } from '@/store/selectors'
+import type { RequestStatus, ServiceRequest } from '@/types'
+
+const PAGE = 15
 
 export function AdminSolicitudesPage() {
-  const total = useDemoStore((s) => s.requests.length)
+  const requests = useDemoStore((s) => s.requests)
+  const categories = useDemoStore((s) => s.categories)
+  const dir = useDirectory()
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState<RequestStatus | ''>('')
+  const [categoryId, setCategoryId] = useState('')
+  const [visible, setVisible] = useState(PAGE)
+  const [openId, setOpenId] = useState<string | null>(null)
+
+  const q = normalize(query)
+  const list = [...requests]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .filter((r) => {
+      if (status && r.status !== status) return false
+      if (categoryId && r.categoryId !== categoryId) return false
+      if (!q) return true
+      return normalize(`${r.code} ${r.title} ${dir.user(r.clientId)?.name} ${dir.professional(r.professionalId)?.name}`).includes(q)
+    })
+  const open = requests.find((r) => r.id === openId)
+
+  // Al cambiar un filtro se vuelve a la primera página
+  const withReset = <T,>(setter: (v: T) => void) => (v: T) => {
+    setter(v)
+    setVisible(PAGE)
+  }
+
+  const rowButton = (r: ServiceRequest, children: ReactNode) => (
+    <button type="button" onClick={() => setOpenId(r.id)} className="text-left font-medium text-primary hover:underline">
+      {children}
+    </button>
+  )
+
   return (
-    <ScreenPlaceholder
-      title="Gestión de solicitudes"
-      description={`${total} solicitudes registradas.`}
-      planned={['Tabla con código, cliente, profesional, categoría, fecha, monto y estado', 'Filtros por estado y categoría', 'Detalle con historial de estados']}
-    />
+    <>
+      <PageHeader title="Gestión de solicitudes" description={`${requests.length} solicitudes registradas.`} />
+
+      <div className="mb-6 grid gap-3 md:grid-cols-[1fr_12rem_12rem]">
+        <SearchField label="Buscar solicitudes" value={query} onChange={withReset(setQuery)} placeholder="Código, trabajo, cliente o profesional" />
+        <div>
+          <label htmlFor="f-estado" className="sr-only">Estado</label>
+          <Select id="f-estado" value={status} onChange={(e) => withReset(setStatus)(e.target.value as RequestStatus | '')}>
+            <option value="">Todos los estados</option>
+            {(Object.keys(STATUS_META) as RequestStatus[]).map((s) => (
+              <option key={s} value={s}>
+                {STATUS_META[s].label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <label htmlFor="f-categoria" className="sr-only">Categoría</label>
+          <Select id="f-categoria" value={categoryId} onChange={(e) => withReset(setCategoryId)(e.target.value)}>
+            <option value="">Todas las categorías</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+
+      <p className="mb-3 text-sm text-muted-foreground" aria-live="polite">
+        {list.length} {list.length === 1 ? 'resultado' : 'resultados'}
+      </p>
+
+      {list.length === 0 ? (
+        <EmptyState icon={ClipboardList} title="Sin resultados" description="Probá con otros filtros." />
+      ) : (
+        <Card padded={false}>
+          <ul className="divide-y divide-border lg:hidden">
+            {list.slice(0, visible).map((r) => (
+              <li key={r.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  {rowButton(r, r.title)}
+                  <StatusBadge status={r.status} />
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {r.code} · {formatDate(r.createdAt)} · {formatGs(r.price)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {dir.user(r.clientId)?.name} → {dir.professional(r.professionalId)?.name}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <table className="hidden w-full text-left text-sm lg:table">
+            <thead>
+              <tr className="border-b border-border text-muted-foreground">
+                <th scope="col" className="px-6 py-3 font-medium">Solicitud</th>
+                <th scope="col" className="px-3 py-3 font-medium">Cliente</th>
+                <th scope="col" className="px-3 py-3 font-medium">Profesional</th>
+                <th scope="col" className="px-3 py-3 font-medium">Fecha</th>
+                <th scope="col" className="px-3 py-3 text-right font-medium">Monto</th>
+                <th scope="col" className="px-6 py-3 font-medium">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.slice(0, visible).map((r) => (
+                <tr key={r.id} className="border-b border-border last:border-0">
+                  <td className="px-6 py-3">
+                    {rowButton(r, r.title)}
+                    <p className="text-muted-foreground">
+                      {r.code} · {dir.category(r.categoryId)?.name}
+                    </p>
+                  </td>
+                  <td className="px-3 py-3">{dir.user(r.clientId)?.name}</td>
+                  <td className="px-3 py-3">{dir.professional(r.professionalId)?.name}</td>
+                  <td className="px-3 py-3 whitespace-nowrap">{formatDate(r.createdAt)}</td>
+                  <td className="px-3 py-3 text-right whitespace-nowrap tabular-nums">{formatGs(r.price)}</td>
+                  <td className="px-6 py-3">
+                    <StatusBadge status={r.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {visible < list.length && (
+            <div className="border-t border-border p-4 text-center">
+              <Button variant="outline" onClick={() => setVisible((v) => v + PAGE)}>
+                Ver más ({list.length - visible} restantes)
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
+
+      <Dialog open={Boolean(open)} onClose={() => setOpenId(null)} title={open?.title ?? ''} description={open ? `${open.code} · ${dir.category(open.categoryId)?.name}` : ''}>
+        {open && (
+          <div className="space-y-5">
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="text-muted-foreground">Cliente</dt>
+                <dd className="font-medium">{dir.user(open.clientId)?.name}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Profesional</dt>
+                <dd className="font-medium">{dir.professional(open.professionalId)?.name}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Fecha del servicio</dt>
+                <dd className="font-medium">
+                  {formatDate(open.date)} · {TIME_SLOT_LABELS[open.timeSlot].split(' (')[0]}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Monto</dt>
+                <dd className="font-medium tabular-nums">{formatGs(open.price)}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-muted-foreground">Dirección</dt>
+                <dd className="font-medium">
+                  {open.address}, {open.city}
+                </dd>
+              </div>
+            </dl>
+            <div className="border-t border-border pt-5">
+              <h3 className="mb-4 font-semibold">Historial</h3>
+              <RequestTimeline request={open} />
+            </div>
+          </div>
+        )}
+      </Dialog>
+    </>
   )
 }

@@ -1,6 +1,6 @@
 import { Lock, Star } from 'lucide-react'
 import type { Ref } from 'react'
-import { SearchForm } from './SearchForm'
+import { SearchForm } from '@/components/SearchForm'
 
 // Cifras de marketing ficticias, solo para la demo
 const STATS = [

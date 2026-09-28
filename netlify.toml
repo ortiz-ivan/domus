@@ -1,0 +1,31 @@
+# Deploy de la demo en Netlify.
+# Vista previa para el cliente: solo la landing (VITE_LANDING_ONLY=true).
+# Para publicar la app completa, cambiar esa variable a "false".
+
+[build]
+  base = "frontend"
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_VERSION = "11.21.0"
+  VITE_LANDING_ONLY = "true"
+
+# SPA: cualquier ruta la resuelve React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Es una vista previa privada: que no la indexen los buscadores
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# Los assets de Vite llevan hash en el nombre: se pueden cachear para siempre
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

@@ -1,7 +1,7 @@
 import { LinkButton } from '@/components/ui/Button'
 import { Logo } from '@/components/Logo'
 import { cn } from '@/lib/cn'
-import { SearchForm } from './SearchForm'
+import { SearchForm } from '@/components/SearchForm'
 
 const LINKS = [
   { href: '#servicios', label: 'Servicios' },

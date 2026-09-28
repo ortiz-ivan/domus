@@ -43,3 +43,10 @@ export function initials(name: string): string {
     .map((part) => part[0].toUpperCase())
     .join('')
 }
+
+/** Formato compacto para ejes y etiquetas de gráficos: 1250000 → "1,3 M", 450000 → "450 mil" */
+export function formatGsShort(amount: number): string {
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toLocaleString('es-PY', { maximumFractionDigits: 1 })} M`
+  if (amount >= 1_000) return `${Math.round(amount / 1_000)} mil`
+  return String(amount)
+}
