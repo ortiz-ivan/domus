@@ -1,0 +1,15 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.idea
+*.sw?
+
+# Claude Code: la config local es personal; las skills en .claude/skills sí se versionan
+.claude/settings.local.json
+
+# Otros gestores de paquetes (el proyecto usa pnpm)
+package-lock.json
+yarn.lock

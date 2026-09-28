@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+/* Paleta Domus: azul marino y dorado tomados del logo */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+
+  /* Marca */
+  --color-primary: #0b1f3a;
+  --color-primary-hover: #16305a;
+  --color-on-primary: #ffffff;
+  --color-accent: #b88a48; /* solo íconos/detalles o fondo con texto marino: 3.1:1 sobre blanco */
+  --color-accent-text: #8a6428; /* texto dorado sobre blanco: 5.3:1 */
+  --color-accent-soft: #f5ede0;
+  --color-on-accent: #0b1f3a;
+
+  /* Neutros */
+  --color-background: #f8f7f4;
+  --color-card: #ffffff;
+  --color-foreground: #0b1f3a;
+  --color-muted: #efece6;
+  --color-muted-foreground: #475569;
+  --color-border: #e5e1d8;
+  --color-ring: #0b1f3a;
+
+  /* Estados de solicitud */
+  --color-status-pending: #b45309;
+  --color-status-accepted: #2563eb;
+  --color-status-progress: #7c3aed;
+  --color-status-done: #15803d;
+  --color-status-rejected: #dc2626;
+  --color-destructive: #dc2626;
+  --color-on-destructive: #ffffff;
+
+  /* Movimiento */
+  --animate-fade-in: fade-in 200ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+}
+
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Foco visible y consistente para navegación con teclado */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
