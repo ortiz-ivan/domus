@@ -1,5 +1,8 @@
-import { CheckCircle2, Info, X } from 'lucide-react'
-import { useToastStore } from '@/store/toast'
+import { Bell, CheckCircle2, Info, X, type LucideIcon } from 'lucide-react'
+import { Link } from 'react-router'
+import { useToastStore, type Toast } from '@/store/toast'
+
+const ICONS: Record<Toast['tone'], LucideIcon> = { success: CheckCircle2, info: Info, notice: Bell }
 
 /** Región aria-live: anuncia los avisos sin mover el foco */
 export function Toaster() {
@@ -12,7 +15,7 @@ export function Toaster() {
       className="pointer-events-none fixed inset-x-4 bottom-24 z-50 flex flex-col items-center gap-2 sm:bottom-6 lg:left-auto lg:items-end"
     >
       {toasts.map((t) => {
-        const Icon = t.tone === 'success' ? CheckCircle2 : Info
+        const Icon = ICONS[t.tone]
         return (
           <div
             key={t.id}
@@ -20,6 +23,15 @@ export function Toaster() {
           >
             <Icon className="size-5 shrink-0 text-accent" aria-hidden="true" />
             <p className="flex-1">{t.message}</p>
+            {t.action && (
+              <Link
+                to={t.action.to}
+                onClick={() => dismiss(t.id)}
+                className="inline-flex min-h-9 shrink-0 items-center rounded-lg bg-accent px-3 font-semibold text-on-accent hover:brightness-95"
+              >
+                {t.action.label}
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => dismiss(t.id)}

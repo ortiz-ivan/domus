@@ -2,6 +2,8 @@ import { LogOut, Menu, X } from 'lucide-react'
 import { useEffect, useRef, type RefObject } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { BOTTOM_NAV_MAX, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
+import { useLiveNotifications } from '@/app/useLiveNotifications'
+import { useNavBadges } from '@/app/useNavBadges'
 import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/ui/Avatar'
 import { Toaster } from '@/components/ui/Toaster'
@@ -26,6 +28,12 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
     >
       <Icon className="size-5 shrink-0" aria-hidden="true" />
       {item.label}
+      {item.badge && item.badge.count > 0 && (
+        <span className="ml-auto min-w-6 rounded-full bg-accent px-2 text-center text-xs leading-6 font-semibold text-on-accent tabular-nums">
+          {item.badge.count}
+          <span className="sr-only"> {item.badge.label}</span>
+        </span>
+      )}
     </NavLink>
   )
 }
@@ -37,7 +45,7 @@ function BottomNav({ items }: { items: NavItem[] }) {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="flex">
-        {items.map(({ to, label, icon: Icon, end }) => (
+        {items.map(({ to, label, icon: Icon, end, badge }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -57,7 +65,15 @@ function BottomNav({ items }: { items: NavItem[] }) {
                       isActive && 'bg-accent-soft',
                     )}
                   >
-                    <Icon className="size-5" aria-hidden="true" />
+                    <span className="relative">
+                      <Icon className="size-5" aria-hidden="true" />
+                      {badge && badge.count > 0 && (
+                        <span className="absolute -top-2 -right-3 min-w-5 rounded-full bg-accent px-1 text-center text-[11px] leading-5 font-semibold text-on-accent tabular-nums">
+                          {badge.count}
+                          <span className="sr-only"> {badge.label}</span>
+                        </span>
+                      )}
+                    </span>
                   </span>
                   <span className="text-center leading-tight">{label}</span>
                 </>
@@ -112,7 +128,18 @@ export function AppShell({ role }: { role: Role }) {
   const mainRef = useRef<HTMLElement>(null)
   const drawerRef = useRef<HTMLDialogElement>(null)
 
-  const items = NAVIGATION[role]
+  const badges = useNavBadges(role)
+  const items = NAVIGATION[role].map((item) => ({ ...item, badge: badges[item.to] }))
+  const pendingTotal = Object.values(badges).reduce((sum, b) => sum + b.count, 0)
+  useLiveNotifications(role)
+
+  // El título de la pestaña muestra los pendientes: se ve desde la otra pestaña durante la demo
+  useEffect(() => {
+    document.title = pendingTotal > 0 ? `(${pendingTotal}) Domus` : 'Domus'
+    return () => {
+      document.title = 'Domus'
+    }
+  }, [pendingTotal])
   const useBottomNav = items.length <= BOTTOM_NAV_MAX
 
   // Al cambiar de pantalla: volver arriba y llevar el foco al contenido (lectores de pantalla)

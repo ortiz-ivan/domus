@@ -13,6 +13,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
+import type { NavBadge } from '@/app/useNavBadges'
 import type { Role } from '@/types'
 
 export interface NavItem {
@@ -21,6 +22,8 @@ export interface NavItem {
   icon: LucideIcon
   /** Solo activo en la ruta exacta (para los "Inicio") */
   end?: boolean
+  /** Contador de pendientes; lo completa AppShell con useNavBadges */
+  badge?: NavBadge
 }
 
 export const ROLE_HOME: Record<Role, string> = {
