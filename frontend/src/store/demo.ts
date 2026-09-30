@@ -14,14 +14,14 @@ import type {
 
 export type NewRequestInput = Pick<
   ServiceRequest,
-  'clientId' | 'professionalId' | 'categoryId' | 'title' | 'description' | 'address' | 'city' | 'date' | 'timeSlot' | 'price'
+  'clientId' | 'professionalId' | 'categoryId' | 'title' | 'description' | 'address' | 'city' | 'date' | 'timeSlot' | 'price' | 'estimate'
 >
 
 interface DemoActions {
   createRequest: (input: NewRequestInput) => string
   /** Cambia el estado si el rol tiene permiso (ver lib/status.ts). Devuelve si se aplicó. */
   transition: (requestId: string, to: RequestStatus, role: Role, note?: string) => boolean
-  addReview: (requestId: string, rating: number, comment: string) => void
+  addReview: (requestId: string, rating: number, comment: string, photos?: string[]) => void
   payRequest: (requestId: string, method: PaymentMethod) => boolean
   updateProfessional: (id: string, changes: Partial<Omit<Professional, 'id' | 'userId'>>) => void
   setProfessionalVerified: (id: string, verified: boolean) => void
@@ -38,6 +38,22 @@ const STORAGE_KEY = 'domus-demo'
 
 const newId = (prefix: string) => `${prefix}-${crypto.randomUUID().slice(0, 8)}`
 const now = () => new Date().toISOString()
+
+/**
+ * localStorage que no rompe la app si se llena (las fotos de las reseñas ocupan lugar):
+ * el cambio queda en memoria y se avisa por consola.
+ */
+const safeLocalStorage = {
+  getItem: (name: string) => localStorage.getItem(name),
+  setItem: (name: string, value: string) => {
+    try {
+      localStorage.setItem(name, value)
+    } catch (error) {
+      console.warn('No se pudo guardar la demo en localStorage', error)
+    }
+  },
+  removeItem: (name: string) => localStorage.removeItem(name),
+}
 
 export const useDemoStore = create<DemoState>()(
   persist(
@@ -71,7 +87,7 @@ export const useDemoStore = create<DemoState>()(
         return true
       },
 
-      addReview: (requestId, rating, comment) => {
+      addReview: (requestId, rating, comment, photos) => {
         const request = get().requests.find((r) => r.id === requestId)
         if (!request || get().reviews.some((rv) => rv.requestId === requestId)) return
         set((s) => ({
@@ -83,6 +99,7 @@ export const useDemoStore = create<DemoState>()(
               clientId: request.clientId,
               rating,
               comment,
+              ...(photos?.length ? { photos } : {}),
               createdAt: now(),
             },
             ...s.reviews,
@@ -132,8 +149,8 @@ export const useDemoStore = create<DemoState>()(
     {
       name: STORAGE_KEY,
       // Subir la versión cuando cambia la forma de los datos: descarta lo guardado y recarga el seed
-      version: 6,
-      storage: createJSONStorage(() => localStorage),
+      version: 7,
+      storage: createJSONStorage(() => safeLocalStorage),
       migrate: () => createSeed() as DemoState,
     },
   ),

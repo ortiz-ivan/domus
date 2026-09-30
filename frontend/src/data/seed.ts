@@ -95,7 +95,7 @@ const admins: User[] = [
   { id: 'u-adm-1', role: 'admin', name: 'Ana Martínez', email: 'admin@domus.com.py', phone: '021 600 700', city: 'Asunción', createdAt: daysAgo(200), active: true },
 ]
 
-interface ProSeed extends Omit<Professional, 'userId' | 'plan'> {
+interface ProSeed extends Omit<Professional, 'userId' | 'plan' | 'responseMinutes'> {
   email: string
   phone: string
   joinedDaysAgo: number
@@ -232,9 +232,20 @@ function generateProfessionals(start: number): ProSeed[] {
 
 const allProSeeds: ProSeed[] = [...proSeeds, ...generateProfessionals(proSeeds.length + 1)]
 
-const professionals: Professional[] = allProSeeds.map(
-  ({ email: _email, phone: _phone, joinedDaysAgo: _joined, ...pro }, i) => ({ ...pro, userId: `u-pro-${i + 1}`, plan: PRO_PLANS[pro.id] ?? 'basico' }),
-)
+// Tiempo típico de respuesta, en minutos. Los de arriba a mano (Carlos responde rápido); el resto con su propia
+// semilla, para no alterar la secuencia que genera nombres y precios.
+const RESPONSE_MINUTES: Partial<Record<string, number>> = {
+  'p-1': 12, 'p-2': 45, 'p-3': 20, 'p-4': 35, 'p-5': 90, 'p-6': 180, 'p-7': 240, 'p-8': 60, 'p-9': 8, 'p-10': 25, 'p-11': 120, 'p-12': 300,
+}
+const RESPONSE_OPTIONS = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180, 240, 360, 720] as const
+const responseRandom = seededRandom(4242)
+
+const professionals: Professional[] = allProSeeds.map(({ email: _email, phone: _phone, joinedDaysAgo: _joined, ...pro }, i) => ({
+  ...pro,
+  userId: `u-pro-${i + 1}`,
+  plan: PRO_PLANS[pro.id] ?? 'basico',
+  responseMinutes: RESPONSE_MINUTES[pro.id] ?? RESPONSE_OPTIONS[Math.floor(responseRandom() * RESPONSE_OPTIONS.length)],
+}))
 
 const proUsers: User[] = allProSeeds.map((pro, i) => ({
   id: `u-pro-${i + 1}`,
@@ -336,12 +347,13 @@ const requests: ServiceRequest[] = [
   },
 ]
 
+// Algunas reseñas traen fotos (las de las categorías, de Unsplash) para que el perfil muestre cómo se ven
 const reviews: Review[] = [
   { id: 'rv-1', requestId: 'r-3', professionalId: 'p-9', clientId: 'u-cli-1', rating: 5, comment: 'Muy puntual y prolijo. La cerradura quedó perfecta.', createdAt: daysAgo(10, 18) },
-  { id: 'rv-2', requestId: 'r-6', professionalId: 'p-1', clientId: 'u-cli-5', rating: 5, comment: 'Resolvió el problema en media hora. Recomendado.', createdAt: daysAgo(20, 21) },
+  { id: 'rv-2', requestId: 'r-6', professionalId: 'p-1', clientId: 'u-cli-5', rating: 5, comment: 'Resolvió el problema en media hora. Recomendado.', photos: ['/images/plomeria.webp'], createdAt: daysAgo(20, 21) },
   { id: 'rv-3', requestId: 'r-7', professionalId: 'p-1', clientId: 'u-cli-2', rating: 4, comment: 'Buen trabajo, llegó un poco tarde pero avisó.', createdAt: daysAgo(35, 17) },
-  { id: 'rv-4', requestId: 'r-8', professionalId: 'p-5', clientId: 'u-cli-3', rating: 5, comment: 'Excelente atención, explicó todo lo que hizo.', createdAt: daysAgo(5, 19) },
-  { id: 'rv-5', requestId: 'r-12', professionalId: 'p-11', clientId: 'u-cli-1', rating: 4, comment: 'Dejó todo limpio después de la poda.', createdAt: daysAgo(28, 16) },
+  { id: 'rv-4', requestId: 'r-8', professionalId: 'p-5', clientId: 'u-cli-3', rating: 5, comment: 'Excelente atención, explicó todo lo que hizo.', photos: ['/images/aire.webp'], createdAt: daysAgo(5, 19) },
+  { id: 'rv-5', requestId: 'r-12', professionalId: 'p-11', clientId: 'u-cli-1', rating: 4, comment: 'Dejó todo limpio después de la poda.', photos: ['/images/jardineria.webp'], createdAt: daysAgo(28, 16) },
 ]
 
 // ---------------------------------------------------------------------------

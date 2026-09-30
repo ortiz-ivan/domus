@@ -6,17 +6,28 @@ import { Select } from '@/components/ui/Field'
 import { cn } from '@/lib/cn'
 import { compareRecommended } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
-import { ratingOf } from '@/store/selectors'
-import type { Category } from '@/types'
+import { ratingOf, type RatingSummary } from '@/store/selectors'
+import type { Category, Professional } from '@/types'
 
-type SortKey = 'recommended' | 'rating' | 'price' | 'experience'
+type SortKey = 'recommended' | 'rating' | 'price' | 'response' | 'experience'
 
 const SORT_LABELS: Record<SortKey, string> = {
   // Planes Destacado y Premium primero (llevan insignia), después por calificación
   recommended: 'Recomendados',
   rating: 'Mejor calificados',
   price: 'Menor precio',
+  response: 'Responden más rápido',
   experience: 'Más experiencia',
+}
+
+type Ranked = { professional: Professional; rating: RatingSummary }
+
+const COMPARE: Record<SortKey, (a: Ranked, b: Ranked) => number> = {
+  recommended: compareRecommended,
+  rating: (a, b) => b.rating.average - a.rating.average || b.rating.count - a.rating.count,
+  price: (a, b) => a.professional.basePrice - b.professional.basePrice,
+  response: (a, b) => a.professional.responseMinutes - b.professional.responseMinutes,
+  experience: (a, b) => b.professional.yearsExperience - a.professional.yearsExperience,
 }
 
 interface CategoryProfessionalsProps {
@@ -41,15 +52,7 @@ export function CategoryProfessionals({ category, service, onServiceChange, prof
   const list = professionals
     .filter((p) => p.categoryIds.includes(category.id) && (!onlyVerified || p.verified))
     .map((p) => ({ professional: p, rating: ratingOf(reviews, p) }))
-    .sort((a, b) =>
-      sort === 'price'
-        ? a.professional.basePrice - b.professional.basePrice
-        : sort === 'experience'
-          ? b.professional.yearsExperience - a.professional.yearsExperience
-          : sort === 'recommended'
-            ? compareRecommended(a, b)
-            : b.rating.average - a.rating.average || b.rating.count - a.rating.count,
-    )
+    .sort(COMPARE[sort])
 
   return (
     <>
@@ -116,7 +119,7 @@ export function CategoryProfessionals({ category, service, onServiceChange, prof
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {list.map(({ professional, rating }) => (
             <li key={professional.id}>
-              <ProCard professional={professional} rating={rating} to={profilePath(professional.id)} />
+              <ProCard professional={professional} rating={rating} service={service} to={profilePath(professional.id)} />
             </li>
           ))}
         </ul>

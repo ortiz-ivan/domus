@@ -17,7 +17,7 @@ export function DetalleProfesionalPage() {
   return (
     <>
       <BackLink to={withService(`/cliente/categorias/${professional.categoryIds[0]}`, service)} label={dir.category(professional.categoryIds[0])?.name ?? 'Volver'} />
-      <ProfessionalProfile professional={professional} requestPath={withService(`/cliente/solicitudes/nueva?profesional=${professional.id}`, service)} />
+      <ProfessionalProfile professional={professional} service={service} requestPath={withService(`/cliente/solicitudes/nueva?profesional=${professional.id}`, service)} />
     </>
   )
 }

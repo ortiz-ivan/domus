@@ -1,13 +1,16 @@
-import { BadgeCheck, Briefcase, Clock, MapPin, Star } from 'lucide-react'
+import { BadgeCheck, Briefcase, Clock, MapPin, Star, Zap } from 'lucide-react'
 import { useState } from 'react'
 import { CAN_REQUEST } from '@/app/config'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Dialog } from '@/components/ui/Dialog'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { cn } from '@/lib/cn'
+import { estimateFor, formatRange } from '@/lib/estimates'
 import { formatDate, formatGs } from '@/lib/format'
+import { formatResponseTime, isFastResponder } from '@/lib/responseTime'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useDirectory } from '@/store/selectors'
 import type { Professional } from '@/types'
@@ -38,13 +41,23 @@ interface ProfessionalProfileProps {
   requestPath: string
   /** Separación de la columna fija con el borde superior (el perfil público tiene header fijo) */
   stickyClassName?: string
+  /** Trabajo elegido antes de llegar al perfil: se resalta en los precios estimados */
+  service?: string | null
+}
+
+/** Foto ampliada de una reseña */
+interface OpenPhoto {
+  src: string
+  author: string
 }
 
 /** Perfil del profesional: lo usan la app del cliente y el perfil público de la landing */
-export function ProfessionalProfile({ professional, requestPath, stickyClassName = 'lg:top-8' }: ProfessionalProfileProps) {
+export function ProfessionalProfile({ professional, requestPath, stickyClassName = 'lg:top-8', service }: ProfessionalProfileProps) {
   const allReviews = useDemoStore((s) => s.reviews)
   const dir = useDirectory()
   const [visible, setVisible] = useState(PAGE)
+  const [openPhoto, setOpenPhoto] = useState<OpenPhoto | null>(null)
+  const fast = isFastResponder(professional.responseMinutes)
 
   const rating = ratingOf(allReviews, professional)
   const reviews = allReviews
@@ -86,9 +99,9 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
           <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
             {[
               { icon: Briefcase, label: 'Trabajos', value: professional.jobsCompleted },
-              { icon: Clock, label: 'Experiencia', value: `${professional.yearsExperience} años` },
+              { icon: Star, label: 'Experiencia', value: `${professional.yearsExperience} años` },
               { icon: MapPin, label: 'Zona', value: professional.city },
-              { icon: Star, label: 'Reseñas', value: rating.count },
+              { icon: fast ? Zap : Clock, label: 'Responde en', value: formatResponseTime(professional.responseMinutes) },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label}>
                 <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -117,6 +130,32 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
         </Card>
 
         <Card>
+          <h2 className="text-lg font-semibold">Precios estimados</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Según trabajos similares. El monto final se acuerda con {professional.name.split(' ')[0]} al ver el trabajo.</p>
+          <dl className="mt-4 divide-y divide-border">
+            {professional.categoryIds
+              .flatMap((id) => dir.category(id)?.services ?? [])
+              .map((name) => {
+                const estimate = estimateFor(professional.basePrice, name)
+                if (!estimate) return null
+                const selected = name === service
+                return (
+                  <div
+                    key={name}
+                    className={cn('flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3', selected && '-mx-3 rounded-lg bg-accent-soft px-3')}
+                  >
+                    <dt className={cn(selected && 'font-semibold')}>
+                      {name}
+                      {selected && <span className="sr-only"> (el trabajo que elegiste)</span>}
+                    </dt>
+                    <dd className="font-semibold tabular-nums">{formatRange(estimate)}</dd>
+                  </div>
+                )
+              })}
+          </dl>
+        </Card>
+
+        <Card>
           <h2 className="text-lg font-semibold">Reseñas de clientes</h2>
           {reviews.length === 0 ? (
             <p className="mt-2 text-muted-foreground">Todavía no hay reseñas escritas en Domus.</p>
@@ -126,6 +165,7 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
                 {reviews.slice(0, visible).map((review) => {
                   const client = dir.user(review.clientId)
                   const [first, last] = (client?.name ?? 'Cliente').split(' ')
+                  const author = `${first}${last ? ` ${last[0]}.` : ''}`
                   return (
                     <li key={review.id} className="py-4 first:pt-0 last:pb-0">
                       <div className="flex items-center justify-between gap-2">
@@ -140,6 +180,21 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
                         ))}
                       </p>
                       {review.comment && <p className="mt-2 text-muted-foreground">{review.comment}</p>}
+                      {review.photos && review.photos.length > 0 && (
+                        <ul className="mt-3 flex flex-wrap gap-2" aria-label={`Fotos de ${author}`}>
+                          {review.photos.map((src, i) => (
+                            <li key={src.slice(-40) + i}>
+                              <button
+                                type="button"
+                                onClick={() => setOpenPhoto({ src, author })}
+                                className="block overflow-hidden rounded-lg border border-border transition-opacity duration-150 hover:opacity-90"
+                              >
+                                <img src={src} alt={`Foto ${i + 1} del trabajo, ampliar`} loading="lazy" className="size-20 object-cover" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </li>
                   )
                 })}
@@ -153,6 +208,10 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
           )}
         </Card>
       </div>
+
+      <Dialog open={openPhoto !== null} onClose={() => setOpenPhoto(null)} title={`Foto de ${openPhoto?.author ?? ''}`}>
+        {openPhoto && <img src={openPhoto.src} alt={`Trabajo de ${professional.name.split(' ')[0]}, foto de ${openPhoto.author}`} className="w-full rounded-lg" />}
+      </Dialog>
 
       {/* Solo escritorio: queda fija al hacer scroll */}
       <Card className={cn('hidden lg:sticky lg:block', stickyClassName)}>

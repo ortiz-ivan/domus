@@ -41,7 +41,15 @@ export interface Professional {
   jobsCompleted: number
   /** Reseñas históricas previas a la demo (se suman a las reseñas reales) */
   pastRating: { average: number; count: number }
+  /** Tiempo típico en responder una solicitud, en minutos (dato simulado, como pastRating) */
+  responseMinutes: number
   plan: PlanId
+}
+
+/** Rango de precio en guaraníes */
+export interface PriceRange {
+  min: number
+  max: number
 }
 
 export type RequestStatus =
@@ -79,6 +87,8 @@ export interface ServiceRequest {
   history: StatusChange[]
   /** Monto final acordado, en guaraníes */
   price: number
+  /** Presupuesto estimado que vio el cliente al pedir (no hay si eligió "Otro problema") */
+  estimate?: PriceRange
   createdAt: string
 }
 
@@ -89,6 +99,8 @@ export interface Review {
   clientId: string
   rating: number
   comment: string
+  /** Fotos del trabajo: rutas de /public o data URLs comprimidas en el navegador */
+  photos?: string[]
   createdAt: string
 }
 

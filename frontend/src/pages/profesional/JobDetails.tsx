@@ -1,6 +1,7 @@
 import { CalendarDays, Clock, Lock, MapPin, Phone } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/components/ui/Card'
+import { formatRange } from '@/lib/estimates'
 import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
 import { useDirectory } from '@/store/selectors'
 import type { ServiceRequest } from '@/types'
@@ -32,6 +33,11 @@ export function JobDetails({ request, commissionRate }: { request: ServiceReques
             </div>
           ))}
         </dl>
+        {request.estimate && (
+          <p className="mt-4 rounded-lg bg-accent-soft p-3 text-sm">
+            Al pedir, el cliente vio un presupuesto estimado de <span className="font-semibold tabular-nums">{formatRange(request.estimate)}</span>.
+          </p>
+        )}
       </Card>
 
       <Card>

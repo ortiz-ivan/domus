@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEMO_USER_IDS } from '@/data/seed'
 import { clientNextAction } from '@/pages/cliente/nextAction'
 import { useDemoStore, type NewRequestInput } from '@/store/demo'
@@ -178,6 +178,45 @@ describe('configuración y calificaciones', () => {
     store().resetDemo()
     expect(store().requests.some((r) => r.code === 'DOM-1002')).toBe(false)
     expect(store().settings.commissionRate).toBe(0.1)
+  })
+})
+
+describe('presupuesto estimado y fotos', () => {
+  it('la solicitud guarda el presupuesto que vio el cliente', () => {
+    const id = store().createRequest(newInput({ estimate: { min: 150000, max: 300000 } }))
+    expect(requestById(id).estimate).toEqual({ min: 150000, max: 300000 })
+    expect(requestById(store().createRequest(newInput())).estimate).toBeUndefined()
+  })
+
+  it('la reseña guarda sus fotos, y sin fotos no agrega el campo', () => {
+    const conFotos = store().createRequest(newInput())
+    const sinFotos = store().createRequest(newInput())
+    for (const id of [conFotos, sinFotos]) {
+      store().transition(id, 'aceptada', 'profesional')
+      store().transition(id, 'en_proceso', 'profesional')
+      store().transition(id, 'terminada', 'profesional')
+      store().transition(id, 'confirmada', 'cliente')
+    }
+    store().addReview(conFotos, 5, 'Quedó perfecto', ['data:image/webp;base64,AAAA'])
+    store().addReview(sinFotos, 4, 'Bien', [])
+    expect(store().reviews.find((r) => r.requestId === conFotos)?.photos).toEqual(['data:image/webp;base64,AAAA'])
+    expect(store().reviews.find((r) => r.requestId === sinFotos)).not.toHaveProperty('photos')
+  })
+
+  it('si localStorage se llena, la demo sigue funcionando en memoria', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const original = Storage.prototype.setItem
+    Storage.prototype.setItem = () => {
+      throw new DOMException('Lleno', 'QuotaExceededError')
+    }
+    try {
+      const id = store().createRequest(newInput())
+      expect(requestById(id).status).toBe('pendiente')
+      expect(warn).toHaveBeenCalled()
+    } finally {
+      Storage.prototype.setItem = original
+      warn.mockRestore()
+    }
   })
 })
 

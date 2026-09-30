@@ -43,6 +43,7 @@ export function PublicProfesionalPage() {
               professional={professional}
               requestPath={loginPath({ rol: 'cliente', next: withService(`/cliente/solicitudes/nueva?profesional=${professional.id}`, service) })}
               stickyClassName="lg:top-24"
+              service={service}
             />
 
             {others.length > 0 && (

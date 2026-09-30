@@ -1,10 +1,13 @@
-import { BadgeCheck, Briefcase, MapPin, Sparkles, Star } from 'lucide-react'
+import { BadgeCheck, Briefcase, Clock, MapPin, Sparkles, Star, Zap } from 'lucide-react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { RatingStars } from '@/components/ui/RatingStars'
+import { cn } from '@/lib/cn'
+import { estimateFor, formatRange } from '@/lib/estimates'
 import { formatGs } from '@/lib/format'
 import { planOf } from '@/lib/plans'
+import { formatResponseTime, isFastResponder } from '@/lib/responseTime'
 import type { RatingSummary } from '@/store/selectors'
 import type { Professional } from '@/types'
 
@@ -16,6 +19,8 @@ interface ProCardProps {
   to: string
   /** compact: una fila, para listas dentro de otros paneles */
   variant?: 'card' | 'compact'
+  /** Trabajo elegido: la tarjeta muestra su presupuesto estimado en lugar del precio de visita */
+  service?: string | null
 }
 
 /** Insignia de la membresía: Premium en dorado lleno, Destacado en dorado suave */
@@ -40,8 +45,22 @@ function VerifiedIcon() {
   )
 }
 
+/** "Responde en 15 min": el rayo y el color marcan a los que responden rápido */
+function ResponseTime({ minutes, className }: { minutes: number; className?: string }) {
+  const fast = isFastResponder(minutes)
+  const Icon = fast ? Zap : Clock
+  return (
+    <p className={cn('flex items-center gap-1.5 text-sm', fast ? 'font-medium text-status-done' : 'text-muted-foreground', className)}>
+      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      Responde en {formatResponseTime(minutes)}
+    </p>
+  )
+}
+
 /** Tarjeta de profesional: toda la tarjeta es un único link (un solo destino, más fácil de tocar) */
-export function ProCard({ professional, rating, categoryName, to, variant = 'card' }: ProCardProps) {
+export function ProCard({ professional, rating, categoryName, to, variant = 'card', service }: ProCardProps) {
+  const estimate = service ? estimateFor(professional.basePrice, service) : null
+
   if (variant === 'compact') {
     return (
       <Link
@@ -86,6 +105,7 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
           </p>
           {categoryName && <p className="text-sm text-muted-foreground">{categoryName}</p>}
           <RatingStars value={rating.average} count={rating.count} className="mt-1" />
+          <ResponseTime minutes={professional.responseMinutes} className="mt-1" />
         </div>
       </div>
 
@@ -111,9 +131,16 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
       <p className="mt-4 line-clamp-2 flex-1 text-sm text-muted-foreground">{professional.bio}</p>
 
       <div className="mt-4 flex items-end justify-between gap-2 border-t border-border pt-4">
-        <p className="text-sm text-muted-foreground">
-          Desde <span className="block font-heading text-lg font-bold text-foreground tabular-nums">{formatGs(professional.basePrice)}</span>
-        </p>
+        {estimate ? (
+          <p className="text-sm text-muted-foreground">
+            Estimado para este trabajo
+            <span className="block font-heading font-bold text-foreground tabular-nums">{formatRange(estimate)}</span>
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Desde <span className="block font-heading text-lg font-bold text-foreground tabular-nums">{formatGs(professional.basePrice)}</span>
+          </p>
+        )}
         <span className="text-sm font-semibold text-primary underline-offset-4 group-hover:underline">Ver perfil</span>
       </div>
     </Link>

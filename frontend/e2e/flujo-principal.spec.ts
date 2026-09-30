@@ -1,9 +1,15 @@
 import { expect, test } from '@playwright/test'
 
+/** PNG de 4×4 px (dorado Domus): alcanza para probar la carga y compresión de fotos en un navegador real */
+const PHOTO = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEElEQVR4nGPY0eUBRwzEcQCHkhihLBFBwwAAAABJRU5ErkJggg==',
+  'base64',
+)
+
 /**
  * El criterio de finalización de la demo (docs/domus.md): del pedido del servicio al pago,
  * con el cliente y el profesional en pestañas distintas que se avisan en tiempo real.
- * Ana (cliente) le pide un trabajo a Carlos Benítez, el plomero con el que entra el rol profesional.
+ * María (cliente) le pide un trabajo a Carlos Benítez, el plomero con el que entra el rol profesional.
  */
 test('el cliente contrata, el profesional trabaja y el cliente califica y paga', async ({ context }) => {
   const descripcion = 'Gotea la cañería debajo de la pileta de la cocina desde ayer.'
@@ -25,6 +31,9 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await cliente.goto('/cliente/categorias')
   await cliente.getByRole('link', { name: /Plomería/ }).click()
   await cliente.getByRole('link', { name: /Carlos Benítez/ }).first().click()
+  // Perfil: tiempo de respuesta y precios estimados por trabajo
+  await expect(cliente.getByText('Responde en', { exact: true })).toBeVisible()
+  await expect(cliente.getByRole('heading', { name: 'Precios estimados' })).toBeVisible()
   await cliente.getByRole('link', { name: 'Solicitar servicio' }).first().click()
 
   // 3. Solicitud en cinco pasos
@@ -41,6 +50,7 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await cliente.getByLabel('Dirección').fill('Av. España 1234, casi Brasil')
   await continuar.click()
   await expect(cliente.getByText(descripcion)).toBeVisible()
+  await expect(cliente.getByText('Presupuesto estimado')).toBeVisible()
   await cliente.getByRole('button', { name: 'Enviar solicitud' }).click()
 
   await expect(cliente).toHaveURL(/\/cliente\/solicitudes\/r-/)
@@ -53,6 +63,7 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await expect(nueva).toBeVisible()
   await nueva.click()
   await expect(pro.getByText(descripcion)).toBeVisible()
+  await expect(pro.getByText(/el cliente vio un presupuesto estimado/)).toBeVisible()
   await pro.getByRole('button', { name: 'Aceptar trabajo' }).click()
 
   // 5-6. Seguimiento y finalización
@@ -69,6 +80,8 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   // 8. Calificación
   await cliente.getByRole('radio', { name: /5 estrellas/ }).check({ force: true })
   await cliente.getByLabel('Comentario (opcional)').fill('Muy prolijo y puntual.')
+  await cliente.getByLabel('Agregar fotos del trabajo').setInputFiles({ name: 'trabajo.png', mimeType: 'image/png', buffer: PHOTO })
+  await expect(cliente.getByRole('img', { name: 'Foto 1 que vas a subir' })).toHaveAttribute('src', /^data:image\/(webp|jpeg)/)
   await cliente.getByRole('button', { name: 'Enviar calificación' }).click()
 
   // 9. Pago simulado
@@ -78,4 +91,10 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
 
   // El profesional ve el trabajo cobrado
   await expect(pro.getByRole('heading', { name: 'Cobrado' })).toBeVisible()
+
+  // La reseña con su foto aparece primera en el perfil público de Carlos
+  await cliente.goto('/profesionales/p-1')
+  await expect(cliente.getByText('Muy prolijo y puntual.')).toBeVisible()
+  await cliente.getByRole('button', { name: 'Foto 1 del trabajo, ampliar' }).first().click()
+  await expect(cliente.getByRole('dialog')).toBeVisible()
 })

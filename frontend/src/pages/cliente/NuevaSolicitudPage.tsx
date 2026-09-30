@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
+import { estimateFor, formatRange } from '@/lib/estimates'
 import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
 import { MissingResource } from '@/pages/NotFoundPage'
 import { useDemoStore } from '@/store/demo'
@@ -130,6 +131,8 @@ export function NuevaSolicitudPage() {
   }
 
   const title = form.service === OTHER ? form.customTitle.trim() : form.service
+  // "Otro problema" no tiene estimado: se cotiza en la visita
+  const estimate = form.service && form.service !== OTHER ? estimateFor(professional.basePrice, form.service) : null
   const date = form.when === 'urgente' ? isoIn(1) : form.when === 'semana' ? isoIn(4) : form.date
 
   const validate = (current: number): Errors => {
@@ -174,6 +177,7 @@ export function NuevaSolicitudPage() {
       date,
       timeSlot: form.timeSlot as TimeSlot,
       price: professional.basePrice,
+      ...(estimate ? { estimate } : {}),
     })
     toast(`Solicitud enviada a ${professional.name}`)
     navigate(`/cliente/solicitudes/${id}`)
@@ -223,24 +227,33 @@ export function NuevaSolicitudPage() {
             <fieldset aria-describedby={errors.service ? 'err-service' : undefined}>
               <legend className="sr-only">Tipo de trabajo</legend>
               <div className="space-y-3">
-                {services.map(({ service, categoryId }, i) => (
-                  <div key={service} data-field={i === 0 ? 'service' : undefined}>
-                    <OptionCard
-                      name="service"
-                      title={service}
-                      hint={professional.categoryIds.length > 1 ? dir.category(categoryId)?.name : undefined}
-                      checked={form.service === service}
-                      onChange={() => {
-                        update('service', service)
-                        update('categoryId', categoryId)
-                      }}
-                    />
-                  </div>
-                ))}
+                {services.map(({ service, categoryId }, i) => {
+                  const range = estimateFor(professional.basePrice, service)
+                  const hint = [
+                    professional.categoryIds.length > 1 ? dir.category(categoryId)?.name : undefined,
+                    range ? `Estimado: ${formatRange(range)}` : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
+                  return (
+                    <div key={service} data-field={i === 0 ? 'service' : undefined}>
+                      <OptionCard
+                        name="service"
+                        title={service}
+                        hint={hint || undefined}
+                        checked={form.service === service}
+                        onChange={() => {
+                          update('service', service)
+                          update('categoryId', categoryId)
+                        }}
+                      />
+                    </div>
+                  )
+                })}
                 <OptionCard
                   name="service"
                   title="Otro problema"
-                  hint="Lo describís en el siguiente paso"
+                  hint="Lo describís en el siguiente paso y se cotiza en la visita"
                   checked={form.service === OTHER}
                   onChange={() => update('service', OTHER)}
                 />
@@ -357,8 +370,20 @@ export function NuevaSolicitudPage() {
                 ))}
               </dl>
               <div className="mt-4 rounded-xl bg-accent-soft p-4">
-                <p className="text-sm text-muted-foreground">Precio referencial de la visita</p>
-                <p className="font-heading text-2xl font-bold tabular-nums">{formatGs(professional.basePrice)}</p>
+                {estimate ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">Presupuesto estimado</p>
+                    <p className="font-heading text-2xl font-bold tabular-nums">{formatRange(estimate)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Según trabajos similares. Visita desde {formatGs(professional.basePrice)}; el monto final lo acordás con {professional.name.split(' ')[0]}.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">Precio referencial de la visita</p>
+                    <p className="font-heading text-2xl font-bold tabular-nums">{formatGs(professional.basePrice)}</p>
+                  </>
+                )}
                 <p className="mt-1 text-sm text-muted-foreground">No pagás nada ahora. Se paga cuando confirmás que el trabajo quedó bien.</p>
               </div>
             </>
