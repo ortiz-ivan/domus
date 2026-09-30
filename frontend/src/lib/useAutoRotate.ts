@@ -36,6 +36,8 @@ export function useAutoRotate<T extends HTMLElement = HTMLElement>() {
     rotating: canRotate && autoplay,
     /** La barra se congela (mouse, foco o fuera de pantalla) */
     paused: interacting || !onScreen,
+    /** La sección está a la vista (para arrancar animaciones recién cuando se la mira) */
+    onScreen,
     stop: () => setAutoplay(false),
     toggle: () => setAutoplay((a) => !a),
     /** Van en el contenedor de las opciones */

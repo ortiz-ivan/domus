@@ -1,17 +1,13 @@
 import {
   BadgeCheck,
-  BatteryFull,
   Bell,
   Check,
-  ChevronLeft,
   ClipboardList,
   House,
   LayoutGrid,
   ShieldCheck,
-  Signal,
   Star,
   Timer,
-  Wifi,
   Zap,
   type LucideIcon,
 } from 'lucide-react'
@@ -23,6 +19,7 @@ import { formatGs } from '@/lib/format'
 import { useAutoRotate } from '@/lib/useAutoRotate'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf } from '@/store/selectors'
+import { AppBar, PhoneFrame } from './phone/PhoneFrame'
 
 type FeatureId = 'rapido' | 'confianza' | 'seguimiento'
 
@@ -61,19 +58,6 @@ const FEATURES: Feature[] = [
 
 // ---------------------------------------------------------------------------
 // Pantallas del celular: imitan las de la app real (mismos componentes visuales)
-
-function AppBar({ title, back = false }: { title: string; back?: boolean }) {
-  return (
-    <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-      {back ? (
-        <ChevronLeft className="size-4 text-muted-foreground" />
-      ) : (
-        <img src="/domus_isotipo.png" alt="" width={20} height={20} className="size-5 rounded" />
-      )}
-      <p className="font-heading text-sm font-semibold">{title}</p>
-    </div>
-  )
-}
 
 function RequestScreen() {
   const options = [
@@ -240,23 +224,9 @@ function Phone({ feature, withFloat = false }: { feature: Feature; withFloat?: b
       {/* Halo detrás del celular */}
       <div className="absolute inset-x-[-15%] top-[10%] -z-10 aspect-square rounded-full bg-accent-soft" />
 
-      <div className="rounded-[2.75rem] bg-primary p-2.5 shadow-2xl ring-1 ring-primary/20">
-        <div className="relative h-[31rem] overflow-hidden rounded-[2.25rem] bg-card text-foreground">
-          {/* Barra de estado + isla */}
-          <div className="relative flex h-9 items-center justify-between px-6 text-[11px] font-semibold">
-            <span>9:41</span>
-            <span className="absolute top-2 left-1/2 h-5 w-20 -translate-x-1/2 rounded-full bg-primary" />
-            <span className="flex items-center gap-1">
-              <Signal className="size-3" />
-              <Wifi className="size-3" />
-              <BatteryFull className="size-3.5" />
-            </span>
-          </div>
-          <div key={feature.id} className="h-[calc(100%-2.25rem)] animate-fade-in">
-            <Screen />
-          </div>
-        </div>
-      </div>
+      <PhoneFrame screenKey={feature.id}>
+        <Screen />
+      </PhoneFrame>
 
       {withFloat && (
         // Afuera del celular, a su izquierda: solo desde xl, donde hay lugar sin pisar las opciones
