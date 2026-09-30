@@ -2,6 +2,7 @@ import { ArrowRight, MapPin, Search } from 'lucide-react'
 import { useId, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { buttonClasses } from '@/components/ui/button-styles'
+import { SelectMenu } from '@/components/ui/SelectMenu'
 import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
 import { matchCategory } from '@/lib/search'
@@ -35,25 +36,15 @@ export function SearchForm({ variant = 'hero', destination = 'login', className 
   }
 
   const cityField = (
-    <div className={cn('relative', isHero ? 'sm:w-48' : 'w-40 shrink-0')}>
-      <label htmlFor={`${id}-city`} className="sr-only">
-        Ciudad
-      </label>
-      <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-      <select
-        id={`${id}-city`}
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        className={cn(
-          'min-h-11 w-full cursor-pointer appearance-none bg-card pr-3 pl-9 text-sm text-foreground',
-          isHero ? 'rounded-full border border-border' : 'border-l border-border',
-        )}
-      >
-        {CITIES.map((c) => (
-          <option key={c}>{c}</option>
-        ))}
-      </select>
-    </div>
+    <SelectMenu
+      label="Ciudad"
+      value={city}
+      options={CITIES}
+      onChange={setCity}
+      icon={MapPin}
+      className={isHero ? 'sm:w-48' : 'w-40 shrink-0'}
+      triggerClassName={isHero ? 'rounded-full border border-border pl-3.5' : 'border-l border-border'}
+    />
   )
 
   return (
