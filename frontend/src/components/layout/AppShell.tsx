@@ -3,6 +3,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { BOTTOM_NAV_MAX, isNavItemActive, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
 import { CAN_REQUEST, PRESENTER_TOOLS } from '@/app/config'
+import { documentTitle, usePageTitle } from '@/app/pageTitle'
 import { useLiveNotifications } from '@/app/useLiveNotifications'
 import { useNavBadges } from '@/app/useNavBadges'
 import { DemoControls } from '@/components/layout/DemoControls'
@@ -128,13 +129,11 @@ export function AppShell({ role }: { role: Role }) {
   const pendingTotal = Object.values(badges).reduce((sum, b) => sum + b.count, 0)
   useLiveNotifications(role)
 
-  // El título de la pestaña muestra los pendientes: se ve desde la otra pestaña durante la demo
+  // Pantalla, rol y pendientes en la pestaña: con un rol en cada pestaña se distinguen de un vistazo
+  const page = usePageTitle()
   useEffect(() => {
-    document.title = pendingTotal > 0 ? `(${pendingTotal}) Domus` : 'Domus'
-    return () => {
-      document.title = 'Domus'
-    }
-  }, [pendingTotal])
+    document.title = documentTitle({ page, section: ROLE_LABELS[role], pending: pendingTotal })
+  }, [page, role, pendingTotal])
   const useBottomNav = items.length <= BOTTOM_NAV_MAX
 
   // Al cambiar de pantalla, el foco va al contenido (lectores de pantalla). El scroll lo maneja ScrollRestoration.

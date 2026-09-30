@@ -8,12 +8,12 @@ export const adminRoutes: RouteObject[] = [
     path: '/admin',
     lazy: from(layouts, 'AdminLayout'),
     children: [
-      { index: true, lazy: from(pages, 'AdminDashboardPage') },
-      { path: 'usuarios', lazy: from(pages, 'AdminUsuariosPage') },
-      { path: 'profesionales', lazy: from(pages, 'AdminProfesionalesPage') },
-      { path: 'solicitudes', lazy: from(pages, 'AdminSolicitudesPage') },
-      { path: 'finanzas', lazy: from(pages, 'AdminFinanzasPage') },
-      { path: 'configuracion', lazy: from(pages, 'AdminConfiguracionPage') },
+      { index: true, handle: { title: 'Dashboard' }, lazy: from(pages, 'AdminDashboardPage') },
+      { path: 'usuarios', handle: { title: 'Usuarios' }, lazy: from(pages, 'AdminUsuariosPage') },
+      { path: 'profesionales', handle: { title: 'Profesionales' }, lazy: from(pages, 'AdminProfesionalesPage') },
+      { path: 'solicitudes', handle: { title: 'Solicitudes' }, lazy: from(pages, 'AdminSolicitudesPage') },
+      { path: 'finanzas', handle: { title: 'Finanzas' }, lazy: from(pages, 'AdminFinanzasPage') },
+      { path: 'configuracion', handle: { title: 'Configuración' }, lazy: from(pages, 'AdminConfiguracionPage') },
     ],
   },
 ]

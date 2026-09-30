@@ -13,6 +13,8 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await pro.goto('/ingresar?como=profesional')
   await pro.getByRole('navigation', { name: 'Navegación principal' }).getByRole('link', { name: /^Solicitudes/ }).click()
   await expect(pro.getByRole('heading', { name: 'Solicitudes nuevas' })).toBeVisible()
+  // La pestaña dice qué rol es y cuántos pendientes tiene (las solicitudes precargadas)
+  await expect(pro).toHaveTitle(/^\(\d+\) Solicitudes nuevas · Profesional · Domus$/)
 
   const cliente = await context.newPage()
   await cliente.goto('/ingresar')

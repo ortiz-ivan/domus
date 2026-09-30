@@ -10,7 +10,7 @@ import { profesionalRoutes } from '@/app/routes/profesionalRoutes'
  * Los roles no publicados llegan vacíos por alias (vite.config.ts) y su código no se compila.
  */
 export const appRoutes: RouteObject[] = [
-  { path: '/ingresar', lazy: from(() => import('@/pages/RoleSelectPage'), 'RoleSelectPage') },
+  { path: '/ingresar', handle: { title: 'Ingresar' }, lazy: from(() => import('@/pages/RoleSelectPage'), 'RoleSelectPage') },
   ...clienteRoutes,
   ...profesionalRoutes,
   ...adminRoutes,

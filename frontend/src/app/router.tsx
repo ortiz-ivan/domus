@@ -14,9 +14,9 @@ import { RouteErrorPage } from '@/pages/RouteErrorPage'
 const publicRoutes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
   // Carga diferida: la portada no descarga la landing para profesionales
-  { path: '/para-profesionales', lazy: { Component: async () => (await import('@/pages/landing/pros/ProLandingPage')).ProLandingPage } },
-  { path: '/servicios/:categoryId', element: <PublicCategoryPage /> },
-  { path: '/profesionales/:professionalId', element: <PublicProfesionalPage /> },
+  { path: '/para-profesionales', handle: { title: 'Para profesionales' }, lazy: { Component: async () => (await import('@/pages/landing/pros/ProLandingPage')).ProLandingPage } },
+  { path: '/servicios/:categoryId', handle: { title: 'Profesionales' }, element: <PublicCategoryPage /> },
+  { path: '/profesionales/:professionalId', handle: { title: 'Perfil del profesional' }, element: <PublicProfesionalPage /> },
 ]
 
 // En modo "solo landing" appRoutes es un módulo vacío (alias en vite.config.ts): la app no se compila
@@ -24,10 +24,10 @@ const routes: RouteObject[] = LANDING_ONLY
   ? [
       ...publicRoutes,
       // Todos los CTA del landing apuntan a /ingresar: acá se muestra "Próximamente"
-      { path: '/ingresar', element: <ComingSoonPage /> },
+      { path: '/ingresar', handle: { title: 'Próximamente' }, element: <ComingSoonPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ]
-  : [...publicRoutes, ...appRoutes, { path: '*', element: <NotFoundPage /> }]
+  : [...publicRoutes, ...appRoutes, { path: '*', handle: { title: 'Página no encontrada' }, element: <NotFoundPage /> }]
 
 // Ruta raíz: scroll entre páginas, el indicador de carga mientras llega el código de una sección
 // y la pantalla de error (también recarga sola si un deploy dejó sin archivos a la pestaña abierta)
