@@ -73,3 +73,24 @@ test('la lista pública de profesionales se ordena con el selector propio', asyn
   expect(minutos.length).toBeGreaterThan(5)
   expect(minutos).toEqual([...minutos].sort((a, b) => a - b))
 })
+
+test.describe('recorridos animados de "cómo funciona"', () => {
+  test('portada: el cliente escribe su problema y Domus sugiere la categoría', async ({ page }) => {
+    await page.goto('/#como-funciona')
+    const paso = page.getByRole('button', { name: /Elegí el servicio/ })
+    await paso.click()
+    await expect(paso).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByText('Te sugerimos')).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('profesionales: Carlos acepta, trabaja y termina; después cobra', async ({ page }) => {
+    await page.goto('/para-profesionales')
+    const trabajo = page.getByRole('button', { name: /Hacé el trabajo/ })
+    await trabajo.scrollIntoViewIfNeeded()
+    await trabajo.click()
+    await expect(page.getByText('Le avisamos a María para que confirme y pague')).toBeVisible({ timeout: 10_000 })
+
+    await page.getByRole('button', { name: /Cobrá y crecé/ }).click()
+    await expect(page.getByText('Reseña nueva de María G.')).toBeVisible({ timeout: 10_000 })
+  })
+})

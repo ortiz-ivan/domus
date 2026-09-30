@@ -9,22 +9,19 @@ import { matchCategory } from '@/lib/search'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf } from '@/store/selectors'
 import { AppBar } from './PhoneFrame'
+import type { ScreenProps } from './ProcessShowcase'
 import { useScript, useTyping } from './useScript'
 
 /**
  * Pantallas animadas de "Así de simple funciona": cada una cuenta su paso con un guion corto
  * (ver useScript). Usan los datos de la demo: María le pide a Carlos, el plomero demo.
  */
-export interface ScreenProps {
-  /** La sección está a la vista: recién ahí arranca el guion */
-  playing: boolean
-}
 
 const SERVICE = 'Pérdidas de agua'
 const QUERY = 'gotea la canilla del baño'
 
 /** Círculo que marca un toque, como en una grabación de pantalla */
-function Tap({ className }: { className?: string }) {
+export function Tap({ className }: { className?: string }) {
   return (
     <span className={cn('pointer-events-none absolute flex size-9 items-center justify-center', className)}>
       <span className="absolute size-full animate-ping rounded-full bg-primary/25" />

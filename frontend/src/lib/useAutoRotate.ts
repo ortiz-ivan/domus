@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FocusEvent } from 'react'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
+const VISIBLE_SHARE = 0.4
+
 /**
  * Rotación automática accesible para secciones con opciones (landing).
  * - Solo en escritorio y si el sistema no pide reducir el movimiento.
@@ -19,7 +21,16 @@ export function useAutoRotate<T extends HTMLElement = HTMLElement>() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0.4 })
+    // A la vista: el 40 % del bloque, o el 40 % de la pantalla si el bloque es más alto que ella
+    // (con solo un porcentaje del bloque, uno alto en una pantalla baja no arrancaría nunca)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const viewport = entry.rootBounds?.height ?? window.innerHeight
+        const needed = Math.min(entry.boundingClientRect.height, viewport) * VISIBLE_SHARE
+        setOnScreen(entry.isIntersecting && entry.intersectionRect.height >= needed)
+      },
+      { threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
+    )
     observer.observe(el)
     return () => observer.disconnect()
   }, [])

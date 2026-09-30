@@ -1,4 +1,4 @@
-import { ArrowRight, Hammer, Inbox, LayoutGrid, Star, Wallet, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Bell, Eye, Hammer, Inbox, LayoutGrid, ShieldCheck, Star, UserRound, Wallet } from 'lucide-react'
 import { loginPath } from '@/app/paths'
 import { PlanCards } from '@/components/PlanCards'
 import { ProCard } from '@/components/ProCard'
@@ -8,16 +8,47 @@ import { ratingOf } from '@/store/selectors'
 import { useDemoStore } from '@/store/demo'
 import { LandingFooter } from '../LandingFooter'
 import { LandingHeader } from '../LandingHeader'
+import { ProcessShowcase, type ProcessStep } from '../phone/ProcessShowcase'
+import { EarningsScreen, InboxScreen, JobScreen, ProfileScreen } from '../phone/ProScreens'
 import { EarningsCalculator } from './EarningsCalculator'
 
 // La demo no tiene alta de perfiles: los botones entran como el profesional de prueba (Carlos)
 const JOIN_PATH = loginPath({ rol: 'profesional' })
 
-const STEPS: { icon: LucideIcon; title: string; text: string }[] = [
-  { icon: LayoutGrid, title: 'Mostrá tus servicios', text: 'Tus rubros, tu zona y tu precio de referencia, en un perfil que ven los clientes.' },
-  { icon: Inbox, title: 'Recibí solicitudes', text: 'Te llegan pedidos de clientes cerca tuyo, con el detalle del trabajo.' },
-  { icon: Hammer, title: 'Hacé el trabajo', text: 'Aceptá solo lo que te conviene y avisá cada avance desde la app.' },
-  { icon: Wallet, title: 'Cobrá y crecé', text: 'El cliente paga en la app y cada reseña te trae más trabajos.' },
+// El mismo trabajo que la portada le muestra al cliente, del lado del profesional (Carlos)
+const STEPS: ProcessStep[] = [
+  {
+    id: 'perfil',
+    icon: LayoutGrid,
+    title: 'Mostrá tus servicios',
+    text: 'Tus rubros, tu zona y tu precio de referencia, en un perfil que ven los clientes.',
+    screen: ProfileScreen,
+    aside: { icon: Eye, title: 'Los clientes ya te ven', hint: 'en tu rubro, con tu precio' },
+  },
+  {
+    id: 'solicitudes',
+    icon: Inbox,
+    title: 'Recibí solicitudes',
+    text: 'Te llegan pedidos de clientes cerca tuyo, con el detalle del trabajo.',
+    screen: InboxScreen,
+    aside: { icon: UserRound, title: 'María pidió un plomero', hint: 'en Asunción, hace 1 minuto' },
+  },
+  {
+    id: 'trabajo',
+    icon: Hammer,
+    title: 'Hacé el trabajo',
+    text: 'Aceptá solo lo que te conviene y avisá cada avance desde la app.',
+    screen: JobScreen,
+    aside: { icon: Bell, title: 'María ve cada avance', hint: 'sin que tengas que llamarla' },
+  },
+  {
+    id: 'cobro',
+    icon: Wallet,
+    title: 'Cobrá y crecé',
+    text: 'El cliente paga en la app y cada reseña te trae más trabajos.',
+    screen: EarningsScreen,
+    aside: { icon: ShieldCheck, title: 'Cobro seguro', hint: 'el cliente paga en la app al confirmar' },
+  },
 ]
 
 const FAQ = [
@@ -117,26 +148,14 @@ export function ProLandingPage() {
           </div>
         </section>
 
-        {/* Cómo funciona */}
-        <section className="bg-background py-16 sm:py-24">
+        {/* Cómo funciona: el recorrido del profesional en un celular animado */}
+        <section className="overflow-hidden bg-background py-16 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <h2 className="text-center text-3xl font-bold text-balance sm:text-4xl">Así trabajás con Domus.</h2>
-            <ol className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {STEPS.map(({ icon: Icon, title, text }, i) => (
-                <li key={title} className="rounded-2xl border border-border bg-card p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary">
-                      <Icon className="size-6 text-accent" aria-hidden="true" />
-                    </span>
-                    <span className="font-heading text-4xl font-bold text-border" aria-hidden="true">
-                      {i + 1}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-                  <p className="mt-1 text-muted-foreground">{text}</p>
-                </li>
-              ))}
-            </ol>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
+              Del perfil al cobro, todo desde el celular. Mirá cómo Carlos recibe el pedido de María, hace el trabajo y cobra.
+            </p>
+            <ProcessShowcase steps={STEPS} />
           </div>
         </section>
 
