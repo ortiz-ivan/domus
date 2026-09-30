@@ -1,16 +1,17 @@
-import { useEffect, useRef, useState, type FocusEvent } from 'react'
+import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 'react'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
 const VISIBLE_SHARE = 0.4
 
 /**
  * Rotación automática accesible para secciones con opciones (landing).
- * - Solo en escritorio y si el sistema no pide reducir el movimiento.
- * - Se pausa con el mouse encima o el foco adentro, y cuando la sección no está en pantalla.
+ * - Solo en escritorio (salvo `allScreens`) y si el sistema no pide reducir el movimiento.
+ * - Se pausa con el mouse encima o el foco de teclado adentro, y cuando la sección no está en pantalla.
+ *   Los toques no pausan: en táctil no hay "salir" del hover ni del foco, y quedaría congelada.
  * - `stop()` la detiene (la persona eligió a mano); `toggle()` es el botón Pausar / Reanudar.
  * El avance lo dispara <RotationProgress> al terminar su animación: pausar la animación pausa el tiempo.
  */
-export function useAutoRotate<T extends HTMLElement = HTMLElement>() {
+export function useAutoRotate<T extends HTMLElement = HTMLElement>({ allScreens = false }: { allScreens?: boolean } = {}) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const [autoplay, setAutoplay] = useState(true)
@@ -35,7 +36,7 @@ export function useAutoRotate<T extends HTMLElement = HTMLElement>() {
     return () => observer.disconnect()
   }, [])
 
-  const canRotate = isDesktop && !reducedMotion
+  const canRotate = (allScreens || isDesktop) && !reducedMotion
 
   return {
     /** Va en la sección: se observa si está en pantalla */
@@ -53,9 +54,15 @@ export function useAutoRotate<T extends HTMLElement = HTMLElement>() {
     toggle: () => setAutoplay((a) => !a),
     /** Van en el contenedor de las opciones */
     interactionHandlers: {
-      onMouseEnter: () => setInteracting(true),
-      onMouseLeave: () => setInteracting(false),
-      onFocus: () => setInteracting(true),
+      onPointerEnter: (e: PointerEvent<HTMLElement>) => {
+        if (e.pointerType === 'mouse') setInteracting(true)
+      },
+      onPointerLeave: (e: PointerEvent<HTMLElement>) => {
+        if (e.pointerType === 'mouse') setInteracting(false)
+      },
+      onFocus: (e: FocusEvent<HTMLElement>) => {
+        if (e.target.matches(':focus-visible')) setInteracting(true)
+      },
       onBlur: (e: FocusEvent<HTMLElement>) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setInteracting(false)
       },

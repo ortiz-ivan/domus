@@ -31,10 +31,11 @@ const ROTATE_MS = 7500
 export function ProcessShowcase({ steps }: { steps: ProcessStep[] }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const active = steps[activeIndex]
-  const { ref: rotationRef, ...rotation } = useAutoRotate<HTMLDivElement>()
+  const { ref: rotationRef, ...rotation } = useAutoRotate<HTMLDivElement>({ allScreens: true })
 
   const next = () => setActiveIndex((i) => (i + 1) % steps.length)
 
+  // A diferencia de otras secciones, rota también en móvil: el recorrido se entiende mejor visto de corrido
   // Elegir un paso a mano detiene la rotación: la persona tomó el control
   const choose = (index: number) => {
     setActiveIndex(index)
