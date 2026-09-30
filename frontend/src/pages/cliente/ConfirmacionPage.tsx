@@ -23,8 +23,13 @@ export function ConfirmacionPage() {
   const [report, setReport] = useState('')
 
   if (!request) return <MissingResource what="esa solicitud" backTo="/cliente/solicitudes" backLabel="Mis solicitudes" />
-  // Solo tiene sentido confirmar un trabajo terminado
-  if (request.status !== 'terminada') return <Navigate to={`/cliente/solicitudes/${request.id}`} replace />
+  // Solo tiene sentido confirmar un trabajo terminado. Si ya está confirmado se sigue a calificar:
+  // al confirmar, esta guarda se evalúa antes de que termine de cargar la página de calificación
+  // y, si mandara al seguimiento, le ganaría al navigate() de confirm()
+  if (request.status !== 'terminada') {
+    const base = `/cliente/solicitudes/${request.id}`
+    return <Navigate to={request.status === 'confirmada' ? `${base}/calificar` : base} replace />
+  }
 
   const professional = dir.professional(request.professionalId)
   const finishedAt = request.history.find((h) => h.status === 'terminada')?.at
