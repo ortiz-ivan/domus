@@ -54,3 +54,22 @@ test.describe('selector de ciudad del buscador', () => {
     await expect(ciudad).toHaveText('Fernando de la Mora')
   })
 })
+
+test('la lista pública de profesionales se ordena con el selector propio', async ({ page }) => {
+  await page.goto('/servicios/plomeria')
+  const orden = page.getByRole('combobox', { name: 'Ordenar por' })
+  await expect(orden).toHaveText('Recomendados')
+
+  await orden.click()
+  await page.getByRole('option', { name: 'Responden más rápido' }).click()
+  await expect(orden).toHaveText('Responden más rápido')
+
+  // Las tarjetas quedan de menor a mayor tiempo de respuesta
+  const tiempos = await page.getByText(/^Responde en /).allTextContents()
+  const minutos = tiempos.map((t) => {
+    const [, n, unidad] = t.match(/(\d+) (min|h|día|días)/)!
+    return Number(n) * (unidad === 'min' ? 1 : unidad === 'h' ? 60 : 1440)
+  })
+  expect(minutos.length).toBeGreaterThan(5)
+  expect(minutos).toEqual([...minutos].sort((a, b) => a - b))
+})

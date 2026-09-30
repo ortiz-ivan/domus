@@ -3,7 +3,13 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { cn } from '@/lib/cn'
 import { normalize } from '@/lib/search'
 
-interface SelectMenuProps {
+/** Opción con valor interno y texto visible (por ejemplo `''` → "Todos los estados") */
+export interface SelectOption<T extends string = string> {
+  value: T
+  label: string
+}
+
+interface SelectMenuProps<T extends string> {
   /**
    * Nombre de la lista. Sin `id` también nombra al botón (el ícono y el valor lo explican a la vista);
    * con `id`, dentro de un Field, al botón lo nombra la etiqueta visible.
@@ -14,13 +20,16 @@ interface SelectMenuProps {
   'aria-describedby'?: string
   'aria-invalid'?: boolean
   required?: boolean
-  value: string
-  options: readonly string[]
-  onChange: (value: string) => void
+  value: T
+  /** Textos sueltos (el valor es el texto) u opciones con valor y etiqueta */
+  options: readonly (T | SelectOption<T>)[]
+  onChange: (value: T) => void
   icon?: LucideIcon
   className?: string
   /** Clases del botón: bordes y redondeo según dónde se use */
   triggerClassName?: string
+  /** Borde de la lista alineado con el del botón: `end` para selectores pegados a la derecha */
+  align?: 'start' | 'end'
 }
 
 /** Tiempo para seguir escribiendo y buscar por más de una letra ("la" → Lambaré) */
@@ -31,7 +40,7 @@ const TYPEAHEAD_MS = 600
  * Patrón "select-only combobox" de WAI-ARIA: el foco queda en el botón y la opción activa se anuncia
  * con aria-activedescendant. Teclado: flechas, Inicio/Fin, Enter/Espacio, Esc, Tab y escribir la inicial.
  */
-export function SelectMenu({
+export function SelectMenu<T extends string>({
   label,
   value,
   options,
@@ -43,7 +52,8 @@ export function SelectMenu({
   'aria-describedby': describedBy,
   'aria-invalid': invalid,
   required,
-}: SelectMenuProps) {
+  align = 'start',
+}: SelectMenuProps<T>) {
   const id = useId()
   const listId = `${id}-list`
   const optionId = (index: number) => `${id}-opt-${index}`
@@ -52,7 +62,8 @@ export function SelectMenu({
   const rootRef = useRef<HTMLDivElement>(null)
   const typeahead = useRef({ text: '', timer: 0 })
 
-  const selectedIndex = Math.max(0, options.indexOf(value))
+  const items = options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option))
+  const selectedIndex = Math.max(0, items.findIndex((item) => item.value === value))
 
   const openMenu = (index = selectedIndex) => {
     setActive(index)
@@ -60,7 +71,7 @@ export function SelectMenu({
   }
 
   const choose = (index: number) => {
-    onChange(options[index])
+    onChange(items[index].value)
     setOpen(false)
   }
 
@@ -88,15 +99,15 @@ export function SelectMenu({
     state.text += normalize(char)
     state.timer = window.setTimeout(() => (state.text = ''), TYPEAHEAD_MS)
     const start = state.text.length === 1 ? from + 1 : from
-    for (let i = 0; i < options.length; i++) {
-      const index = (start + i) % options.length
-      if (normalize(options[index]).startsWith(state.text)) return index
+    for (let i = 0; i < items.length; i++) {
+      const index = (start + i) % items.length
+      if (normalize(items[index].label).startsWith(state.text)) return index
     }
     return -1
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const last = options.length - 1
+    const last = items.length - 1
     const { key } = event
 
     if (key.length === 1 && key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
@@ -168,7 +179,7 @@ export function SelectMenu({
         className={cn('flex min-h-11 w-full items-center gap-2 bg-card px-3 text-left text-sm text-foreground', triggerClassName)}
       >
         {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
-        <span className="min-w-0 flex-1 truncate">{value}</span>
+        <span className="min-w-0 flex-1 truncate">{items[selectedIndex]?.label}</span>
         <ChevronDown
           className={cn('size-4 shrink-0 text-muted-foreground transition-transform duration-150', open && 'rotate-180')}
           aria-hidden="true"
@@ -181,13 +192,16 @@ export function SelectMenu({
         aria-label={label}
         tabIndex={-1}
         hidden={!open}
-        className="absolute top-full left-0 z-30 mt-2 max-h-72 w-max min-w-full animate-fade-in overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-xl"
+        className={cn(
+          'absolute top-full z-30 mt-2 max-h-72 w-max min-w-full animate-fade-in overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-xl',
+          align === 'end' ? 'right-0' : 'left-0',
+        )}
       >
-        {options.map((option, index) => {
-          const selected = option === value
+        {items.map((item, index) => {
+          const selected = item.value === value
           return (
             <li
-              key={option}
+              key={item.value}
               id={optionId(index)}
               role="option"
               aria-selected={selected}
@@ -201,7 +215,7 @@ export function SelectMenu({
                 selected ? 'font-semibold text-primary' : 'text-foreground',
               )}
             >
-              {option}
+              {item.label}
               <Check className={cn('size-4 shrink-0 text-accent-text', !selected && 'invisible')} aria-hidden="true" />
             </li>
           )

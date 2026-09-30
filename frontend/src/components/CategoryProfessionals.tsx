@@ -2,7 +2,8 @@ import { SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { ProCard } from '@/components/ProCard'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Select } from '@/components/ui/Field'
+import { controlClasses } from '@/components/ui/Field'
+import { SelectMenu } from '@/components/ui/SelectMenu'
 import { cn } from '@/lib/cn'
 import { compareRecommended } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
@@ -19,6 +20,8 @@ const SORT_LABELS: Record<SortKey, string> = {
   response: 'Responden más rápido',
   experience: 'Más experiencia',
 }
+
+const SORT_OPTIONS = (Object.keys(SORT_LABELS) as SortKey[]).map((value) => ({ value, label: SORT_LABELS[value] }))
 
 type Ranked = { professional: Professional; rating: RatingSummary }
 
@@ -103,13 +106,17 @@ export function CategoryProfessionals({ category, service, onServiceChange, prof
           <label htmlFor="orden" className="text-sm font-medium whitespace-nowrap">
             Ordenar por
           </label>
-          <Select id="orden" value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="w-auto">
-            {Object.entries(SORT_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+          {/* Ancho fijo: no se corre al cambiar de opción */}
+          <SelectMenu
+            id="orden"
+            label="Ordenar por"
+            value={sort}
+            options={SORT_OPTIONS}
+            onChange={setSort}
+            align="end"
+            className="w-52"
+            triggerClassName={controlClasses}
+          />
         </div>
       </div>
 

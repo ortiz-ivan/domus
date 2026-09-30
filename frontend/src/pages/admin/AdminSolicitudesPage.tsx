@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Select } from '@/components/ui/Field'
+import { controlClasses } from '@/components/ui/Field'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchField } from '@/components/ui/SearchField'
+import { SelectMenu } from '@/components/ui/SelectMenu'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
 import { normalize } from '@/lib/search'
@@ -17,6 +18,11 @@ import { useDirectory } from '@/store/selectors'
 import type { RequestStatus, ServiceRequest } from '@/types'
 
 const PAGE = 15
+
+const STATUS_OPTIONS = [
+  { value: '' as const, label: 'Todos los estados' },
+  ...(Object.keys(STATUS_META) as RequestStatus[]).map((value) => ({ value, label: STATUS_META[value].label })),
+]
 
 export function AdminSolicitudesPage() {
   const requests = useDemoStore((s) => s.requests)
@@ -38,6 +44,7 @@ export function AdminSolicitudesPage() {
       return normalize(`${r.code} ${r.title} ${dir.user(r.clientId)?.name} ${dir.professional(r.professionalId)?.name}`).includes(q)
     })
   const open = requests.find((r) => r.id === openId)
+  const categoryOptions = [{ value: '', label: 'Todas las categorías' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]
 
   // Al cambiar un filtro se vuelve a la primera página
   const withReset = <T,>(setter: (v: T) => void) => (v: T) => {
@@ -59,25 +66,18 @@ export function AdminSolicitudesPage() {
         <SearchField label="Buscar solicitudes" value={query} onChange={withReset(setQuery)} placeholder="Código, trabajo, cliente o profesional" />
         <div>
           <label htmlFor="f-estado" className="sr-only">Estado</label>
-          <Select id="f-estado" value={status} onChange={(e) => withReset(setStatus)(e.target.value as RequestStatus | '')}>
-            <option value="">Todos los estados</option>
-            {(Object.keys(STATUS_META) as RequestStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {STATUS_META[s].label}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu id="f-estado" label="Estado" value={status} options={STATUS_OPTIONS} onChange={withReset(setStatus)} triggerClassName={controlClasses} />
         </div>
         <div>
           <label htmlFor="f-categoria" className="sr-only">Categoría</label>
-          <Select id="f-categoria" value={categoryId} onChange={(e) => withReset(setCategoryId)(e.target.value)}>
-            <option value="">Todas las categorías</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu
+            id="f-categoria"
+            label="Categoría"
+            value={categoryId}
+            options={categoryOptions}
+            onChange={withReset(setCategoryId)}
+            triggerClassName={controlClasses}
+          />
         </div>
       </div>
 

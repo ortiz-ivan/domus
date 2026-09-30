@@ -2,12 +2,11 @@ import {
   useId,
   type InputHTMLAttributes,
   type ReactNode,
-  type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react'
 import { cn } from '@/lib/cn'
 
-/** Clases de los controles de formulario (también para SelectMenu dentro de un Field) */
+/** Clases de los controles de formulario. Para elegir de una lista se usa SelectMenu (con estas mismas clases). */
 export const controlClasses =
   'w-full rounded-lg border border-border bg-card px-3 text-base text-foreground placeholder:text-muted-foreground/70 ' +
   'aria-invalid:border-destructive disabled:opacity-50'
@@ -65,8 +64,4 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
 
 export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea className={cn(controlClasses, 'min-h-28 py-2.5', className)} {...props} />
-}
-
-export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={cn(controlClasses, 'min-h-11 cursor-pointer', className)} {...props} />
 }
