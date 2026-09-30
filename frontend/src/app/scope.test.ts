@@ -3,6 +3,7 @@ import { enabledRoles, parseDemoScope } from '@/app/scope'
 
 describe('alcance de la demo', () => {
   it('lee VITE_DEMO_SCOPE y por defecto publica todo', () => {
+    expect(parseDemoScope('profesional')).toBe('profesional')
     expect(parseDemoScope('cliente')).toBe('cliente')
     expect(parseDemoScope('landing')).toBe('landing')
     expect(parseDemoScope(undefined)).toBe('full')
@@ -16,6 +17,7 @@ describe('alcance de la demo', () => {
 
   it('roles habilitados en cada alcance', () => {
     expect(enabledRoles('full')).toEqual(['cliente', 'profesional', 'admin'])
+    expect(enabledRoles('profesional')).toEqual(['cliente', 'profesional'])
     expect(enabledRoles('cliente')).toEqual(['cliente'])
     expect(enabledRoles('landing')).toEqual([])
   })

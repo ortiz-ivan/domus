@@ -17,7 +17,7 @@ import type { Professional } from '@/types'
 
 const PAGE = 4
 
-/** En la vista previa (VITE_DEMO_SCOPE=cliente) todavía no se pueden solicitar servicios */
+/** En la vista previa solo de clientes (VITE_DEMO_SCOPE=cliente) todavía no se pueden solicitar servicios */
 const PREVIEW_NOTE = 'Muy pronto vas a poder solicitar servicios desde Domus.'
 
 function RequestButton({ to, className }: { to: string; className?: string }) {

@@ -1,8 +1,9 @@
 # Deploy de la demo en Netlify.
 # VITE_DEMO_SCOPE define qué se publica (ver frontend/src/app/scope.ts):
-#   landing  → solo la landing
-#   cliente  → landing + app del cliente, sin solicitar servicios (vista previa actual)
-#   full     → todo: los tres roles y las solicitudes
+#   landing      → solo la landing
+#   cliente      → landing + app del cliente, sin solicitar servicios
+#   profesional  → landing + cliente y profesional, con solicitudes (vista previa actual)
+#   full         → todo: los tres roles, las solicitudes y los controles del presentador
 
 [build]
   base = "frontend"
@@ -13,7 +14,7 @@
 [build.environment]
   NODE_VERSION = "22"
   PNPM_VERSION = "11.21.0"
-  VITE_DEMO_SCOPE = "cliente"
+  VITE_DEMO_SCOPE = "profesional"
 
 # SPA: cualquier ruta la resuelve React Router
 [[redirects]]

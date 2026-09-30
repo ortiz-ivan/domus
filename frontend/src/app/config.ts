@@ -7,8 +7,8 @@ export const DEMO_SCOPE = parseDemoScope(import.meta.env.VITE_DEMO_SCOPE, import
 /** Solo la landing: los CTA de ingreso llevan a "Próximamente" */
 export const LANDING_ONLY = DEMO_SCOPE === 'landing'
 
-/** Crear solicitudes de servicio (en la vista previa de clientes está deshabilitado) */
-export const CAN_REQUEST = DEMO_SCOPE === 'full'
+/** Crear solicitudes de servicio (en la vista previa solo de clientes está deshabilitado) */
+export const CAN_REQUEST = DEMO_SCOPE === 'full' || DEMO_SCOPE === 'profesional'
 
 /** Herramientas de la exposición (controles del presentador): solo con todos los roles */
 export const PRESENTER_TOOLS = DEMO_SCOPE === 'full'

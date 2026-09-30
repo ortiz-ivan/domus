@@ -71,7 +71,9 @@ export function RoleSelectPage() {
         <p className="mt-2 max-w-md text-center text-muted-foreground">
           {PRESENTER_TOOLS
             ? 'Demo interactiva. Tip: abrí cada rol en una pestaña distinta para ver cómo se conectan en tiempo real.'
-            : 'Vista previa: por ahora podés recorrer Domus como cliente.'}
+            : isRoleEnabled('profesional')
+              ? 'Vista previa: podés recorrer Domus como cliente o como profesional. Tip: abrí cada uno en una pestaña distinta y pedí un servicio para ver cómo se conectan.'
+              : 'Vista previa: por ahora podés recorrer Domus como cliente.'}
         </p>
 
         <ul className="mt-8 grid w-full max-w-4xl gap-4 sm:grid-cols-3">
