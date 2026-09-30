@@ -1,7 +1,6 @@
 import { ClipboardList } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { RequestTimeline } from '@/components/RequestTimeline'
-import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -9,15 +8,15 @@ import { controlClasses } from '@/components/ui/Field'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchField } from '@/components/ui/SearchField'
 import { SelectMenu } from '@/components/ui/SelectMenu'
+import { ShowMore } from '@/components/ui/ShowMore'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
 import { normalize } from '@/lib/search'
 import { STATUS_META } from '@/lib/status'
+import { usePaged } from '@/lib/usePaged'
 import { useDemoStore } from '@/store/demo'
 import { useDirectory } from '@/store/selectors'
 import type { RequestStatus, ServiceRequest } from '@/types'
-
-const PAGE = 15
 
 const STATUS_OPTIONS = [
   { value: '' as const, label: 'Todos los estados' },
@@ -31,7 +30,6 @@ export function AdminSolicitudesPage() {
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<RequestStatus | ''>('')
   const [categoryId, setCategoryId] = useState('')
-  const [visible, setVisible] = useState(PAGE)
   const [openId, setOpenId] = useState<string | null>(null)
 
   const q = normalize(query)
@@ -43,14 +41,9 @@ export function AdminSolicitudesPage() {
       if (!q) return true
       return normalize(`${r.code} ${r.title} ${dir.user(r.clientId)?.name} ${dir.professional(r.professionalId)?.name}`).includes(q)
     })
+  const page = usePaged(list, `${status}|${categoryId}|${q}`)
   const open = requests.find((r) => r.id === openId)
   const categoryOptions = [{ value: '', label: 'Todas las categorías' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]
-
-  // Al cambiar un filtro se vuelve a la primera página
-  const withReset = <T,>(setter: (v: T) => void) => (v: T) => {
-    setter(v)
-    setVisible(PAGE)
-  }
 
   const rowButton = (r: ServiceRequest, children: ReactNode) => (
     <button type="button" onClick={() => setOpenId(r.id)} className="text-left font-medium text-primary hover:underline">
@@ -63,10 +56,10 @@ export function AdminSolicitudesPage() {
       <PageHeader title="Gestión de solicitudes" description={`${requests.length} solicitudes registradas.`} />
 
       <div className="mb-6 grid gap-3 md:grid-cols-[1fr_12rem_12rem]">
-        <SearchField label="Buscar solicitudes" value={query} onChange={withReset(setQuery)} placeholder="Código, trabajo, cliente o profesional" />
+        <SearchField label="Buscar solicitudes" value={query} onChange={setQuery} placeholder="Código, trabajo, cliente o profesional" />
         <div>
           <label htmlFor="f-estado" className="sr-only">Estado</label>
-          <SelectMenu id="f-estado" label="Estado" value={status} options={STATUS_OPTIONS} onChange={withReset(setStatus)} triggerClassName={controlClasses} />
+          <SelectMenu id="f-estado" label="Estado" value={status} options={STATUS_OPTIONS} onChange={setStatus} triggerClassName={controlClasses} />
         </div>
         <div>
           <label htmlFor="f-categoria" className="sr-only">Categoría</label>
@@ -75,7 +68,7 @@ export function AdminSolicitudesPage() {
             label="Categoría"
             value={categoryId}
             options={categoryOptions}
-            onChange={withReset(setCategoryId)}
+            onChange={setCategoryId}
             triggerClassName={controlClasses}
           />
         </div>
@@ -90,7 +83,7 @@ export function AdminSolicitudesPage() {
       ) : (
         <Card padded={false}>
           <ul className="divide-y divide-border lg:hidden">
-            {list.slice(0, visible).map((r) => (
+            {page.items.map((r) => (
               <li key={r.id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   {rowButton(r, r.title)}
@@ -117,7 +110,7 @@ export function AdminSolicitudesPage() {
               </tr>
             </thead>
             <tbody>
-              {list.slice(0, visible).map((r) => (
+              {page.items.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
                   <td className="px-6 py-3">
                     {rowButton(r, r.title)}
@@ -136,13 +129,7 @@ export function AdminSolicitudesPage() {
               ))}
             </tbody>
           </table>
-          {visible < list.length && (
-            <div className="border-t border-border p-4 text-center">
-              <Button variant="outline" onClick={() => setVisible((v) => v + PAGE)}>
-                Ver más ({list.length - visible} restantes)
-              </Button>
-            </div>
-          )}
+          <ShowMore {...page} onShowMore={page.showMore} noun="solicitudes" />
         </Card>
       )}
 

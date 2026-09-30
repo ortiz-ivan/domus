@@ -9,8 +9,10 @@ import { FilterTabs } from '@/components/ui/FilterTabs'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { SearchField } from '@/components/ui/SearchField'
+import { ShowMore } from '@/components/ui/ShowMore'
 import { formatGs } from '@/lib/format'
 import { normalize } from '@/lib/search'
+import { usePaged } from '@/lib/usePaged'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useDirectory } from '@/store/selectors'
 import { toast } from '@/store/toast'
@@ -33,6 +35,7 @@ export function AdminProfesionalesPage() {
     const categories = p.categoryIds.map((id) => dir.category(id)?.name).join(' ')
     return !q || normalize(`${p.name} ${p.city} ${categories}`).includes(q)
   })
+  const page = usePaged(list, `${filter}|${q}`)
 
   const toggle = (p: Professional) => {
     setVerified(p.id, !p.verified)
@@ -81,7 +84,7 @@ export function AdminProfesionalesPage() {
       ) : (
         <Card padded={false}>
           <ul className="divide-y divide-border lg:hidden">
-            {list.map((p) => {
+            {page.items.map((p) => {
               const rating = ratingOf(reviews, p)
               return (
                 <li key={p.id} className="p-4">
@@ -114,7 +117,7 @@ export function AdminProfesionalesPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((p) => {
+              {page.items.map((p) => {
                 const rating = ratingOf(reviews, p)
                 return (
                   <tr key={p.id} className="border-b border-border last:border-0">
@@ -140,6 +143,7 @@ export function AdminProfesionalesPage() {
               })}
             </tbody>
           </table>
+          <ShowMore {...page} onShowMore={page.showMore} noun="profesionales" />
         </Card>
       )}
     </>

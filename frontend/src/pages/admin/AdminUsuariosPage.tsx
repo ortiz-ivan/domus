@@ -9,8 +9,10 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { FilterTabs } from '@/components/ui/FilterTabs'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchField } from '@/components/ui/SearchField'
+import { ShowMore } from '@/components/ui/ShowMore'
 import { formatDate } from '@/lib/format'
 import { normalize } from '@/lib/search'
+import { usePaged } from '@/lib/usePaged'
 import { useDemoStore } from '@/store/demo'
 import { toast } from '@/store/toast'
 import type { Role, User } from '@/types'
@@ -35,6 +37,7 @@ export function AdminUsuariosPage() {
   const list = users.filter(
     (u) => (filter === 'todos' || u.role === filter) && (!q || normalize(`${u.name} ${u.email} ${u.city}`).includes(q)),
   )
+  const page = usePaged(list, `${filter}|${q}`)
 
   const toggle = (u: User) => {
     setUserActive(u.id, !u.active)
@@ -73,7 +76,7 @@ export function AdminUsuariosPage() {
       ) : (
         <Card padded={false}>
           <ul className="divide-y divide-border md:hidden">
-            {list.map((u) => (
+            {page.items.map((u) => (
               <li key={u.id} className="flex items-center gap-3 p-4">
                 <Avatar name={u.name} size="sm" />
                 <div className="min-w-0 flex-1">
@@ -100,7 +103,7 @@ export function AdminUsuariosPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((u) => (
+              {page.items.map((u) => (
                 <tr key={u.id} className="border-b border-border last:border-0">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
@@ -121,6 +124,7 @@ export function AdminUsuariosPage() {
               ))}
             </tbody>
           </table>
+          <ShowMore {...page} onShowMore={page.showMore} noun="usuarios" />
         </Card>
       )}
     </>

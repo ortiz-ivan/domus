@@ -1,27 +1,26 @@
 import { BadgePercent, Banknote, Receipt, Wallet } from 'lucide-react'
-import { useState } from 'react'
 import { BarList } from '@/components/charts/BarList'
 import { ColumnChart } from '@/components/charts/ColumnChart'
-import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { ShowMore } from '@/components/ui/ShowMore'
 import { StatCard } from '@/components/ui/StatCard'
 import { formatDate, formatGs, formatGsShort } from '@/lib/format'
 import { lastMonths, sumByPeriod } from '@/lib/periods'
+import { usePaged } from '@/lib/usePaged'
 import { useDemoStore } from '@/store/demo'
 import { useDirectory } from '@/store/selectors'
 import type { PaymentMethod } from '@/types'
 
 const METHOD_LABELS: Record<PaymentMethod, string> = { tarjeta: 'Tarjeta', transferencia: 'Transferencia', billetera: 'Billetera electrónica' }
-const PAGE = 12
 
 export function AdminFinanzasPage() {
   const payments = useDemoStore((s) => s.payments)
   const requests = useDemoStore((s) => s.requests)
   const dir = useDirectory()
-  const [visible, setVisible] = useState(PAGE)
 
   const sorted = [...payments].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const page = usePaged(sorted)
   const volume = payments.reduce((s, p) => s + p.amount, 0)
   const fees = payments.reduce((s, p) => s + p.fee, 0)
   const months = lastMonths(6)
@@ -64,7 +63,7 @@ export function AdminFinanzasPage() {
       <Card className="mt-6" padded={false}>
         <h2 className="p-4 text-lg font-semibold sm:px-6">Pagos recientes</h2>
         <ul className="divide-y divide-border border-t border-border md:hidden">
-          {sorted.slice(0, visible).map((p) => {
+          {page.items.map((p) => {
             const r = requestOf(p.requestId)
             return (
               <li key={p.id} className="flex items-start justify-between gap-4 p-4">
@@ -94,7 +93,7 @@ export function AdminFinanzasPage() {
             </tr>
           </thead>
           <tbody>
-            {sorted.slice(0, visible).map((p) => {
+            {page.items.map((p) => {
               const r = requestOf(p.requestId)
               return (
                 <tr key={p.id} className="border-b border-border last:border-0">
@@ -112,13 +111,7 @@ export function AdminFinanzasPage() {
             })}
           </tbody>
         </table>
-        {visible < sorted.length && (
-          <div className="border-t border-border p-4 text-center">
-            <Button variant="outline" onClick={() => setVisible((v) => v + PAGE)}>
-              Ver más pagos
-            </Button>
-          </div>
-        )}
+        <ShowMore {...page} onShowMore={page.showMore} noun="pagos" />
       </Card>
     </>
   )
