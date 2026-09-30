@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock, Pencil } from 'lucide-react'
+import { ArrowLeft, Clock, MapPin, Pencil } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { CAN_REQUEST } from '@/app/config'
@@ -8,7 +8,8 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { BackLink } from '@/components/ui/BackLink'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Field, Input, Select, Textarea } from '@/components/ui/Field'
+import { controlClasses, Field, Input, Textarea } from '@/components/ui/Field'
+import { SelectMenu } from '@/components/ui/SelectMenu'
 import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
 import { estimateFor, formatRange } from '@/lib/estimates'
@@ -339,11 +340,15 @@ export function NuevaSolicitudPage() {
               </Field>
               <Field label="Ciudad" required>
                 {(props) => (
-                  <Select {...props} value={form.city} onChange={(e) => update('city', e.target.value)}>
-                    {CITIES.map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </Select>
+                  <SelectMenu
+                    {...props}
+                    label="Ciudad"
+                    value={form.city}
+                    options={CITIES}
+                    onChange={(city) => update('city', city)}
+                    icon={MapPin}
+                    triggerClassName={controlClasses}
+                  />
                 )}
               </Field>
             </div>

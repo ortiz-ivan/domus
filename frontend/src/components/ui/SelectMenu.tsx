@@ -4,8 +4,16 @@ import { cn } from '@/lib/cn'
 import { normalize } from '@/lib/search'
 
 interface SelectMenuProps {
-  /** Nombre accesible (no se ve: el ícono y el valor ya lo explican a la vista) */
+  /**
+   * Nombre de la lista. Sin `id` también nombra al botón (el ícono y el valor lo explican a la vista);
+   * con `id`, dentro de un Field, al botón lo nombra la etiqueta visible.
+   */
   label: string
+  /** Props que pasa Field: etiqueta, ayuda y error conectados */
+  id?: string
+  'aria-describedby'?: string
+  'aria-invalid'?: boolean
+  required?: boolean
   value: string
   options: readonly string[]
   onChange: (value: string) => void
@@ -23,7 +31,19 @@ const TYPEAHEAD_MS = 600
  * Patrón "select-only combobox" de WAI-ARIA: el foco queda en el botón y la opción activa se anuncia
  * con aria-activedescendant. Teclado: flechas, Inicio/Fin, Enter/Espacio, Esc, Tab y escribir la inicial.
  */
-export function SelectMenu({ label, value, options, onChange, icon: Icon, className, triggerClassName }: SelectMenuProps) {
+export function SelectMenu({
+  label,
+  value,
+  options,
+  onChange,
+  icon: Icon,
+  className,
+  triggerClassName,
+  id: fieldId,
+  'aria-describedby': describedBy,
+  'aria-invalid': invalid,
+  required,
+}: SelectMenuProps) {
   const id = useId()
   const listId = `${id}-list`
   const optionId = (index: number) => `${id}-opt-${index}`
@@ -133,7 +153,11 @@ export function SelectMenu({ label, value, options, onChange, icon: Icon, classN
       <button
         type="button"
         role="combobox"
-        aria-label={label}
+        id={fieldId}
+        aria-label={fieldId ? undefined : label}
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
+        aria-required={required}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}

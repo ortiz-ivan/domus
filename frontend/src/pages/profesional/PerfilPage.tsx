@@ -1,11 +1,12 @@
-import { BadgeCheck, Clock, Sparkles, Star } from 'lucide-react'
+import { BadgeCheck, Clock, MapPin, Sparkles, Star } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Field, Input, Select, Textarea } from '@/components/ui/Field'
+import { controlClasses, Field, Input, Textarea } from '@/components/ui/Field'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { SelectMenu } from '@/components/ui/SelectMenu'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
@@ -60,11 +61,7 @@ function ProfileForm({ professional }: { professional: Professional }) {
         </Field>
         <Field label="Zona de trabajo">
           {(props) => (
-            <Select {...props} value={city} onChange={(e) => setCity(e.target.value)}>
-              {CITIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </Select>
+            <SelectMenu {...props} label="Zona de trabajo" value={city} options={CITIES} onChange={setCity} icon={MapPin} triggerClassName={controlClasses} />
           )}
         </Field>
       </div>

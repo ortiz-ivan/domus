@@ -48,8 +48,12 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await cliente.getByRole('radio', { name: /Tarde/ }).check()
   await continuar.click()
   await cliente.getByLabel('Dirección').fill('Av. España 1234, casi Brasil')
+  // La ciudad se elige en el selector propio, nombrado por la etiqueta visible del campo
+  await cliente.getByRole('combobox', { name: 'Ciudad' }).click()
+  await cliente.getByRole('option', { name: 'Luque' }).click()
   await continuar.click()
   await expect(cliente.getByText(descripcion)).toBeVisible()
+  await expect(cliente.getByText('Av. España 1234, casi Brasil, Luque')).toBeVisible()
   await expect(cliente.getByText('Presupuesto estimado')).toBeVisible()
   await cliente.getByRole('button', { name: 'Enviar solicitud' }).click()
 
