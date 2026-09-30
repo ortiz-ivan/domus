@@ -8,6 +8,7 @@ import { LandingPage } from '@/pages/landing/LandingPage'
 import { PublicCategoryPage } from '@/pages/landing/PublicCategoryPage'
 import { PublicProfesionalPage } from '@/pages/landing/PublicProfesionalPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { RouteErrorPage } from '@/pages/RouteErrorPage'
 
 // Páginas públicas: se ven sin iniciar sesión, también en el deploy "solo landing"
 const publicRoutes: RouteObject[] = [
@@ -28,5 +29,8 @@ const routes: RouteObject[] = LANDING_ONLY
     ]
   : [...publicRoutes, ...appRoutes, { path: '*', element: <NotFoundPage /> }]
 
-// Ruta raíz: scroll entre páginas y el indicador de carga mientras llega el código de una sección
-export const router = createBrowserRouter([{ element: <RootLayout />, HydrateFallback: PageLoader, children: routes }])
+// Ruta raíz: scroll entre páginas, el indicador de carga mientras llega el código de una sección
+// y la pantalla de error (también recarga sola si un deploy dejó sin archivos a la pestaña abierta)
+export const router = createBrowserRouter([
+  { element: <RootLayout />, HydrateFallback: PageLoader, ErrorBoundary: RouteErrorPage, children: routes },
+])
