@@ -6,7 +6,8 @@
 
 [build]
   base = "frontend"
-  command = "pnpm build"
+  # Si falla el lint o algún test no se publica (los e2e de Playwright se corren localmente: pnpm e2e)
+  command = "pnpm lint && pnpm test && pnpm build"
   publish = "dist"
 
 [build.environment]

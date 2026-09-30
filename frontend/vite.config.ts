@@ -46,6 +46,8 @@ export default defineConfig(({ mode }) => {
     test: {
       // jsdom: localStorage, sessionStorage y eventos "storage" reales
       environment: 'jsdom',
+      // Los de e2e/ son de Playwright (pnpm e2e)
+      include: ['src/**/*.test.{ts,tsx}'],
     },
   }
 })
