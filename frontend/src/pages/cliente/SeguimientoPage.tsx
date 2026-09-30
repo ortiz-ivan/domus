@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { RequestTimeline } from '@/components/RequestTimeline'
 import { Avatar } from '@/components/ui/Avatar'
+import { useBackHere } from '@/app/useBackHere'
 import { BackLink } from '@/components/ui/BackLink'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -24,6 +25,7 @@ export function SeguimientoPage() {
   const transition = useDemoStore((s) => s.transition)
   const dir = useDirectory()
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const backHere = useBackHere()
 
   if (!request) return <MissingResource what="esa solicitud" backTo="/cliente/solicitudes" backLabel="Mis solicitudes" />
 
@@ -57,7 +59,7 @@ export function SeguimientoPage() {
               {action && (
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="font-semibold">{action.label}</p>
-                  <LinkButton to={action.to}>Continuar</LinkButton>
+                  <LinkButton to={action.to}>{action.cta}</LinkButton>
                 </div>
               )}
               {request.status === 'pagada' && (
@@ -108,7 +110,7 @@ export function SeguimientoPage() {
           {professional && (
             <Card>
               <p className="text-sm text-muted-foreground">Profesional</p>
-              <Link to={`/cliente/profesionales/${professional.id}`} className="mt-2 flex items-center gap-3 rounded-lg hover:underline">
+              <Link to={`/cliente/profesionales/${professional.id}`} state={backHere} className="mt-2 flex items-center gap-3 rounded-lg hover:underline">
                 <Avatar name={professional.name} />
                 <span>
                   <span className="block font-semibold">{professional.name}</span>

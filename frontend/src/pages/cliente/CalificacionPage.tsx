@@ -13,6 +13,7 @@ import { MissingResource } from '@/pages/NotFoundPage'
 import { useDemoStore } from '@/store/demo'
 import { useDirectory } from '@/store/selectors'
 import { toast } from '@/store/toast'
+import { ClosingSteps } from './ClosingSteps'
 import { useClientRequest } from './useClientRequest'
 
 const QUICK_TAGS = ['Puntual', 'Prolijo', 'Buen precio', 'Buena atención', 'Resolvió rápido']
@@ -74,6 +75,7 @@ export function CalificacionPage() {
   return (
     <div className="mx-auto max-w-xl">
       <BackLink to={base} label="Volver al seguimiento" />
+      <ClosingSteps current={1} />
       <Card>
         <form onSubmit={submit} noValidate className="text-center">
           {professional && <Avatar name={professional.name} size="lg" className="mx-auto" />}

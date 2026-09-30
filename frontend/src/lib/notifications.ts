@@ -1,7 +1,7 @@
 import type { DemoData } from '@/data/seed'
 import { formatGs } from '@/lib/format'
 import { TRANSITIONS } from '@/lib/status'
-import type { Role, ServiceRequest } from '@/types'
+import type { RequestStatus, Role, ServiceRequest } from '@/types'
 
 export interface Viewer {
   role: Role
@@ -15,68 +15,93 @@ export interface Notice {
 
 type Snapshot = Pick<DemoData, 'requests' | 'users' | 'professionals' | 'payments'>
 
+/** Un aviso del historial, con cuándo pasó */
+export interface FeedItem extends Notice {
+  id: string
+  at: string
+}
+
 /**
- * Qué avisarle a quien está mirando, comparando el estado anterior con el nuevo.
+ * Qué avisarle a quien está mirando cuando `r` pasa de `from` a `to` (`from` null: recién creada).
  * El autor de cada cambio se deduce de la tabla de transiciones: nunca se avisa
  * a alguien de lo que hizo él mismo. Los cambios "hacia atrás" (p. ej. al
  * reiniciar la demo) no son transiciones válidas y se ignoran.
  */
+function noticeFor(r: ServiceRequest, from: RequestStatus | null, to: RequestStatus, data: Snapshot, viewer: Viewer): Notice | null {
+  const ownProId = data.professionals.find((p) => p.userId === viewer.userId)?.id
+  const isMine = viewer.role === 'cliente' ? r.clientId === viewer.userId : viewer.role === 'profesional' ? r.professionalId === ownProId : true
+  if (!isMine) return null
+  const clientName = () => data.users.find((u) => u.id === r.clientId)?.name.split(' ')[0] ?? 'El cliente'
+  const proName = () => data.professionals.find((p) => p.id === r.professionalId)?.name.split(' ')[0] ?? 'El profesional'
+
+  // Solicitud nueva: siempre la crea el cliente
+  if (from === null) {
+    if (viewer.role === 'cliente' || to !== 'pendiente') return null
+    return viewer.role === 'profesional'
+      ? { message: `Nueva solicitud de ${clientName()}: ${r.title}`, action: { label: 'Ver', to: `/profesional/solicitudes/${r.id}` } }
+      : { message: `Nueva solicitud ${r.code}: ${r.title}`, action: { label: 'Ver', to: '/admin/solicitudes' } }
+  }
+
+  const actor = TRANSITIONS[from][to]
+  if (!actor || actor === viewer.role) return null
+
+  const title = `“${r.title}”`
+  const base = `/cliente/solicitudes/${r.id}`
+  const payment = () => data.payments.find((p) => p.requestId === r.id)
+
+  if (viewer.role === 'cliente') {
+    const byStatus: Partial<Record<RequestStatus, Notice>> = {
+      aceptada: { message: `${proName()} aceptó tu solicitud ${title}`, action: { label: 'Ver', to: base } },
+      rechazada: { message: `${proName()} no puede tomar ${title}`, action: { label: 'Buscar otro', to: `/cliente/categorias/${r.categoryId}` } },
+      en_proceso: { message: `${proName()} empezó a trabajar en ${title}`, action: { label: 'Seguir', to: base } },
+      terminada: { message: `${proName()} terminó ${title}. Confirmá que quedó bien`, action: { label: 'Confirmar', to: `${base}/confirmar` } },
+    }
+    return byStatus[to] ?? null
+  }
+  if (viewer.role === 'profesional') {
+    const job = `/profesional/trabajos/${r.id}`
+    const net = () => {
+      const p = payment()
+      return p ? ` (${formatGs(p.amount - p.fee)} neto)` : ''
+    }
+    const byStatus: Partial<Record<RequestStatus, Notice>> = {
+      cancelada: { message: `${clientName()} canceló ${title}` },
+      confirmada: { message: `${clientName()} confirmó que ${title} quedó bien`, action: { label: 'Ver', to: job } },
+      pagada: { message: `Recibiste el pago de ${title}${net()}`, action: { label: 'Ganancias', to: '/profesional/ganancias' } },
+    }
+    return byStatus[to] ?? null
+  }
+  // Al admin solo le interesan los pagos: el resto sería ruido
+  if (to !== 'pagada') return null
+  const p = payment()
+  return { message: `Pago recibido: ${r.code}${p ? ` · ${formatGs(p.amount)}` : ''}`, action: { label: 'Finanzas', to: '/admin/finanzas' } }
+}
+
+/** Qué avisarle a quien está mirando, comparando el estado anterior con el nuevo (los toasts en vivo) */
 export function diffNotifications(prev: Snapshot, next: Snapshot, viewer: Viewer): Notice[] {
   if (prev.requests === next.requests) return []
-
   const before = new Map(prev.requests.map((r) => [r.id, r]))
-  const ownProId = next.professionals.find((p) => p.userId === viewer.userId)?.id
-  const clientName = (r: ServiceRequest) => next.users.find((u) => u.id === r.clientId)?.name.split(' ')[0] ?? 'El cliente'
-  const proName = (r: ServiceRequest) => next.professionals.find((p) => p.id === r.professionalId)?.name.split(' ')[0] ?? 'El profesional'
   const notices: Notice[] = []
-
   for (const r of next.requests) {
     const old = before.get(r.id)
-    const isMine = viewer.role === 'cliente' ? r.clientId === viewer.userId : viewer.role === 'profesional' ? r.professionalId === ownProId : true
-
-    // Solicitud nueva: siempre la crea el cliente
-    if (!old) {
-      if (viewer.role === 'cliente' || !isMine || r.status !== 'pendiente') continue
-      notices.push(
-        viewer.role === 'profesional'
-          ? { message: `Nueva solicitud de ${clientName(r)}: ${r.title}`, action: { label: 'Ver', to: `/profesional/solicitudes/${r.id}` } }
-          : { message: `Nueva solicitud ${r.code}: ${r.title}`, action: { label: 'Ver', to: '/admin/solicitudes' } },
-      )
-      continue
-    }
-
-    if (old.status === r.status || !isMine) continue
-    const actor = TRANSITIONS[old.status][r.status]
-    if (!actor || actor === viewer.role) continue
-
-    const title = `“${r.title}”`
-    const base = `/cliente/solicitudes/${r.id}`
-    const net = () => {
-      const payment = next.payments.find((p) => p.requestId === r.id)
-      return payment ? ` (${formatGs(payment.amount - payment.fee)} neto)` : ''
-    }
-
-    if (viewer.role === 'cliente') {
-      const byStatus: Partial<Record<ServiceRequest['status'], Notice>> = {
-        aceptada: { message: `${proName(r)} aceptó tu solicitud ${title}`, action: { label: 'Ver', to: base } },
-        rechazada: { message: `${proName(r)} no puede tomar ${title}`, action: { label: 'Buscar otro', to: `/cliente/categorias/${r.categoryId}` } },
-        en_proceso: { message: `${proName(r)} empezó a trabajar en ${title}`, action: { label: 'Seguir', to: base } },
-        terminada: { message: `${proName(r)} terminó ${title}. Confirmá que quedó bien`, action: { label: 'Confirmar', to: `${base}/confirmar` } },
-      }
-      if (byStatus[r.status]) notices.push(byStatus[r.status]!)
-    } else if (viewer.role === 'profesional') {
-      const to = `/profesional/trabajos/${r.id}`
-      const byStatus: Partial<Record<ServiceRequest['status'], Notice>> = {
-        cancelada: { message: `${clientName(r)} canceló ${title}` },
-        confirmada: { message: `${clientName(r)} confirmó que ${title} quedó bien`, action: { label: 'Ver', to } },
-        pagada: { message: `Recibiste el pago de ${title}${net()}`, action: { label: 'Ganancias', to: '/profesional/ganancias' } },
-      }
-      if (byStatus[r.status]) notices.push(byStatus[r.status]!)
-    } else if (r.status === 'pagada') {
-      // Al admin solo le interesan los pagos: el resto sería ruido
-      const payment = next.payments.find((p) => p.requestId === r.id)
-      notices.push({ message: `Pago recibido: ${r.code}${payment ? ` · ${formatGs(payment.amount)}` : ''}`, action: { label: 'Finanzas', to: '/admin/finanzas' } })
-    }
+    if (old?.status === r.status) continue
+    const notice = noticeFor(r, old ? old.status : null, r.status, next, viewer)
+    if (notice) notices.push(notice)
   }
   return notices
+}
+
+/**
+ * Historial de avisos, del más nuevo al más viejo. Sale del historial de cada solicitud,
+ * así incluye lo que pasó con la pestaña cerrada y dice lo mismo que los toasts.
+ */
+export function notificationFeed(data: Snapshot, viewer: Viewer, limit = 30): FeedItem[] {
+  const items: FeedItem[] = []
+  for (const r of data.requests) {
+    r.history.forEach((entry, i) => {
+      const notice = noticeFor(r, i === 0 ? null : r.history[i - 1].status, entry.status, data, viewer)
+      if (notice) items.push({ ...notice, id: `${r.id}:${i}`, at: entry.at })
+    })
+  }
+  return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)
 }

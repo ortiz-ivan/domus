@@ -1,5 +1,6 @@
 import { Bell, CheckCircle2, Info, X, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router'
+import { useBackHere } from '@/app/useBackHere'
 import { useToastStore, type Toast } from '@/store/toast'
 
 const ICONS: Record<Toast['tone'], LucideIcon> = { success: CheckCircle2, info: Info, notice: Bell }
@@ -8,6 +9,7 @@ const ICONS: Record<Toast['tone'], LucideIcon> = { success: CheckCircle2, info: 
 export function Toaster() {
   const toasts = useToastStore((s) => s.toasts)
   const dismiss = useToastStore((s) => s.dismiss)
+  const backHere = useBackHere()
 
   return (
     <div
@@ -26,6 +28,7 @@ export function Toaster() {
             {t.action && (
               <Link
                 to={t.action.to}
+                state={backHere}
                 onClick={() => dismiss(t.id)}
                 className="inline-flex min-h-9 shrink-0 items-center rounded-lg bg-accent px-3 font-semibold text-on-accent hover:brightness-95"
               >

@@ -12,6 +12,7 @@ import { useDemoStore } from '@/store/demo'
 import { useDirectory } from '@/store/selectors'
 import { toast } from '@/store/toast'
 import type { PaymentMethod } from '@/types'
+import { ClosingSteps } from './ClosingSteps'
 import { useClientRequest } from './useClientRequest'
 
 const METHODS: { value: PaymentMethod; label: string; hint: string; icon: LucideIcon }[] = [
@@ -43,6 +44,7 @@ export function PagoPage() {
     return (
       <div className="mx-auto max-w-md">
         <BackLink to={base} label="Volver al seguimiento" />
+        <ClosingSteps current={3} />
         <Card className="text-center">
           <span className="mx-auto inline-flex size-16 animate-fade-in items-center justify-center rounded-full bg-status-done/10">
             <CheckCircle2 className="size-9 text-status-done" aria-hidden="true" />
@@ -89,6 +91,7 @@ export function PagoPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <BackLink to={base} label="Volver al seguimiento" />
+      <ClosingSteps current={2} />
       <h1 className="mb-6 text-2xl font-bold sm:text-3xl">Resumen y pago</h1>
 
       <div className="grid gap-6 md:grid-cols-[1fr_18rem] md:items-start">

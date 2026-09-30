@@ -7,6 +7,7 @@ import { documentTitle, usePageTitle } from '@/app/pageTitle'
 import { useLiveNotifications } from '@/app/useLiveNotifications'
 import { useNavBadges } from '@/app/useNavBadges'
 import { DemoControls } from '@/components/layout/DemoControls'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/ui/Avatar'
 import { Toaster } from '@/components/ui/Toaster'
@@ -157,7 +158,10 @@ export function AppShell({ role }: { role: Role }) {
 
       {/* Sidebar escritorio */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border bg-card p-4 lg:flex">
-        <Logo className="mb-2 px-2" />
+        <div className="mb-2 flex items-center justify-between px-2">
+          <Logo />
+          {user && <NotificationBell role={role} userId={user.id} className="-mr-2" />}
+        </div>
         <p className="mb-6 px-2 text-xs font-semibold tracking-wide text-accent-text uppercase">{ROLE_LABELS[role]}</p>
         <nav aria-label="Navegación principal" className="flex-1">
           <ul className="flex flex-col gap-1">
@@ -208,6 +212,7 @@ export function AppShell({ role }: { role: Role }) {
           <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">
             {ROLE_LABELS[role]}
           </span>
+          {user && <NotificationBell role={role} userId={user.id} />}
           <button
             type="button"
             onClick={switchRole}

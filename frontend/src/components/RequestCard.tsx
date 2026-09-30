@@ -2,6 +2,7 @@ import { CalendarDays, ChevronRight, MapPin } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { useBackHere } from '@/app/useBackHere'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
 import type { Category, ServiceRequest } from '@/types'
@@ -18,9 +19,10 @@ interface RequestCardProps {
 }
 
 export function RequestCard({ request, category, counterpart, to, highlight, children }: RequestCardProps) {
+  const backHere = useBackHere()
   return (
     <article className="rounded-xl border border-border bg-card transition-colors duration-150 hover:border-accent">
-      <Link to={to} className="flex gap-4 p-4 sm:p-5">
+      <Link to={to} state={backHere} className="flex gap-4 p-4 sm:p-5">
         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-accent-soft">
           <CategoryIcon name={category?.icon ?? ''} className="size-5 text-accent-text" />
         </span>

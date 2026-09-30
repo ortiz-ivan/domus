@@ -1,6 +1,6 @@
 import { CheckCircle2, Hourglass, Play } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { RequestTimeline } from '@/components/RequestTimeline'
 import { BackLink } from '@/components/ui/BackLink'
 import { Button } from '@/components/ui/Button'
@@ -16,13 +16,15 @@ import { useProRequest } from './useProRequests'
 
 export function TrabajoEnProcesoPage() {
   const request = useProRequest()
+  // Al redirigir se conserva el origen del link (useBackHere), para que "Volver" siga llevando ahí
+  const location = useLocation()
   const transition = useDemoStore((s) => s.transition)
   const commissionRate = useDemoStore((s) => s.settings.commissionRate)
   const payment = useDemoStore((s) => s.payments.find((p) => p.requestId === request?.id))
   const [confirmFinish, setConfirmFinish] = useState(false)
 
   if (!request) return <MissingResource what="ese trabajo" backTo="/profesional/trabajos" backLabel="Mis trabajos" />
-  if (request.status === 'pendiente') return <Navigate to={`/profesional/solicitudes/${request.id}`} replace />
+  if (request.status === 'pendiente') return <Navigate to={`/profesional/solicitudes/${request.id}`} state={location.state} replace />
 
   const start = () => {
     transition(request.id, 'en_proceso', 'profesional')

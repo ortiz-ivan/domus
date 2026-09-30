@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEMO_USER_IDS } from '@/data/seed'
-import { diffNotifications, type Viewer } from '@/lib/notifications'
+import { diffNotifications, notificationFeed, type Viewer } from '@/lib/notifications'
 import { useDemoStore } from '@/store/demo'
 
 const store = () => useDemoStore.getState()
@@ -111,5 +111,37 @@ describe('avisos en tiempo real', () => {
   it('sin cambios en solicitudes no hay avisos', () => {
     const n = noticesAfter(() => store().updateSettings({ supportEmail: 'otro@domus.com.py' }))
     expect(n).toEqual({ cliente: [], profesional: [], admin: [], otroProfesional: [] })
+  })
+})
+
+describe('historial de avisos', () => {
+  // Los pasos de un mismo test pueden caer en el mismo milisegundo: se compara sin orden
+  const feedOf = (viewer: Viewer) =>
+    notificationFeed(snapshot(), viewer, Infinity)
+      .filter((item) => item.id.startsWith(`${id}:`))
+      .map((item) => item.message)
+
+  it('dice lo mismo que los avisos en vivo, a cada uno lo suyo', () => {
+    create()
+    store().transition(id, 'aceptada', 'profesional')
+    store().transition(id, 'en_proceso', 'profesional')
+    store().transition(id, 'terminada', 'profesional')
+    store().transition(id, 'confirmada', 'cliente')
+
+    expect(feedOf(cliente).sort()).toEqual(
+      [
+        'Carlos aceptó tu solicitud “Pérdidas de agua”',
+        'Carlos empezó a trabajar en “Pérdidas de agua”',
+        'Carlos terminó “Pérdidas de agua”. Confirmá que quedó bien',
+      ].sort(),
+    )
+    expect(feedOf(profesional).sort()).toEqual(['Nueva solicitud de María: Pérdidas de agua', 'María confirmó que “Pérdidas de agua” quedó bien'].sort())
+    expect(feedOf(otroProfesional)).toEqual([])
+  })
+
+  it('va del más nuevo al más viejo y respeta el límite', () => {
+    const feed = notificationFeed(snapshot(), cliente, 5)
+    expect(feed.length).toBeLessThanOrEqual(5)
+    expect(feed.map((item) => item.at)).toEqual([...feed.map((item) => item.at)].sort().reverse())
   })
 })

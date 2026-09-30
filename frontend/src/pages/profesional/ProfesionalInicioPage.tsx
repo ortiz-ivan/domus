@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarDays, Hammer, Inbox, MapPin, Star, Wallet } from 'lucide-react'
 import { Link } from 'react-router'
 import { RequestCard } from '@/components/RequestCard'
+import { useBackHere } from '@/app/useBackHere'
 import { LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
@@ -16,6 +17,7 @@ export function ProfesionalInicioPage() {
   const payments = useDemoStore((s) => s.payments)
   const reviews = useDemoStore((s) => s.reviews)
   const dir = useDirectory()
+  const backHere = useBackHere()
 
   if (!professional) return null
 
@@ -94,7 +96,7 @@ export function ProfesionalInicioPage() {
                   <MapPin className="size-4 text-muted-foreground" aria-hidden="true" />
                   {next.address}, {next.city}
                 </p>
-                <LinkButton to={`/profesional/trabajos/${next.id}`} variant="outline" className="mt-4 w-full">
+                <LinkButton to={`/profesional/trabajos/${next.id}`} state={backHere} variant="outline" className="mt-4 w-full">
                   Ver trabajo
                 </LinkButton>
               </>

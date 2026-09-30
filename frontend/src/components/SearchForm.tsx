@@ -28,7 +28,9 @@ export function SearchForm({ variant = 'hero', destination = 'login', className 
     event.preventDefault()
     const category = matchCategory(query, categories)
     if (destination === 'app') {
-      navigate(category ? `/cliente/categorias/${category.id}` : '/cliente/categorias')
+      // Sin coincidencia, a las categorías con lo escrito en el filtro: se ve que no hubo resultado y se puede corregir
+      const q = query.trim()
+      navigate(category ? `/cliente/categorias/${category.id}` : q ? `/cliente/categorias?q=${encodeURIComponent(q)}` : '/cliente/categorias')
       return
     }
     // Portada: la lista pública de la categoría, sin pedir ingreso (funciona también en el deploy "solo landing")

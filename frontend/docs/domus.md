@@ -136,7 +136,7 @@ distintos roles.
 
 ## 11. Presupuesto de referencia
 
-**Desarrollo de la demo frontend:** Gs. 1.800.000
+**Desarrollo de la demo frontend:**
 
 El presupuesto corresponde al alcance definido en este documento. El desarrollo contempla una demo
 académica interactiva y no una solución productiva.

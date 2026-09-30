@@ -2,6 +2,7 @@ import { BadgeCheck, Briefcase, Clock, MapPin, Sparkles, Star, Zap } from 'lucid
 import { Link } from 'react-router'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
+import { useBackHere } from '@/app/useBackHere'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { cn } from '@/lib/cn'
 import { estimateFor, formatRange } from '@/lib/estimates'
@@ -60,11 +61,13 @@ function ResponseTime({ minutes, className }: { minutes: number; className?: str
 /** Tarjeta de profesional: toda la tarjeta es un único link (un solo destino, más fácil de tocar) */
 export function ProCard({ professional, rating, categoryName, to, variant = 'card', service }: ProCardProps) {
   const estimate = service ? estimateFor(professional.basePrice, service) : null
+  const backHere = useBackHere()
 
   if (variant === 'compact') {
     return (
       <Link
         to={to}
+        state={backHere}
         className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors duration-150 hover:border-accent"
       >
         <Avatar name={professional.name} />
@@ -94,6 +97,7 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
   return (
     <Link
       to={to}
+      state={backHere}
       className="group flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-colors duration-150 hover:border-accent"
     >
       <div className="flex items-start gap-3">

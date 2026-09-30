@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router'
+import { Navigate, useLocation, useNavigate } from 'react-router'
 import { BackLink } from '@/components/ui/BackLink'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -20,12 +20,14 @@ export function DetalleTrabajoPage() {
   const transition = useDemoStore((s) => s.transition)
   const commissionRate = useDemoStore((s) => s.settings.commissionRate)
   const navigate = useNavigate()
+  // Al redirigir se conserva el origen del link (useBackHere), para que "Volver" siga llevando ahí
+  const location = useLocation()
   const [rejectOpen, setRejectOpen] = useState(false)
   const [reason, setReason] = useState(REJECT_REASONS[0])
 
   if (!request) return <MissingResource what="esa solicitud" backTo="/profesional/solicitudes" backLabel="Solicitudes" />
   // Una vez aceptada, el trabajo se gestiona desde "En proceso"
-  if (request.status !== 'pendiente' && request.status !== 'rechazada') return <Navigate to={`/profesional/trabajos/${request.id}`} replace />
+  if (request.status !== 'pendiente' && request.status !== 'rechazada') return <Navigate to={`/profesional/trabajos/${request.id}`} state={location.state} replace />
 
   const accept = () => {
     transition(request.id, 'aceptada', 'profesional')

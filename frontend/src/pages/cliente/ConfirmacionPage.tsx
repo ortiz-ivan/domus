@@ -12,6 +12,7 @@ import { MissingResource } from '@/pages/NotFoundPage'
 import { useDemoStore } from '@/store/demo'
 import { useDirectory } from '@/store/selectors'
 import { toast } from '@/store/toast'
+import { ClosingSteps } from './ClosingSteps'
 import { useClientRequest } from './useClientRequest'
 
 export function ConfirmacionPage() {
@@ -49,6 +50,7 @@ export function ConfirmacionPage() {
   return (
     <div className="mx-auto max-w-xl">
       <BackLink to={`/cliente/solicitudes/${request.id}`} label="Volver al seguimiento" />
+      <ClosingSteps current={0} />
       <Card className="text-center">
         <span className="mx-auto inline-flex size-16 items-center justify-center rounded-full bg-status-done/10">
           <CheckCircle2 className="size-9 text-status-done" aria-hidden="true" />
