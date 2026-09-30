@@ -87,6 +87,40 @@
     outline-offset: 2px;
   }
 
+  /*
+   * Barra de desplazamiento con los colores de la marca: pulgar marino suave sobre el fondo crema.
+   * scrollbar-color se hereda, así que también la toman menús, diálogos y tablas con scroll.
+   */
+  :root {
+    --scrollbar-thumb: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    --scrollbar-thumb-hover: var(--color-accent);
+    scrollbar-color: var(--scrollbar-thumb) var(--color-background);
+    scrollbar-width: thin;
+  }
+
+  /* Safari todavía no soporta scrollbar-color: se dibuja con los pseudoelementos de WebKit */
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--color-background);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      /* El borde del color del fondo la despega de los bordes: queda una píldora flotante */
+      border: 2px solid var(--color-background);
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
