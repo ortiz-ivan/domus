@@ -70,7 +70,7 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
         state={backHere}
         className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors duration-150 hover:border-accent"
       >
-        <Avatar name={professional.name} />
+        <Avatar name={professional.name} src={professional.photo} />
         <div className="min-w-0 flex-1">
           <p className="font-heading text-sm leading-snug font-semibold">
             {professional.name}
@@ -101,7 +101,7 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
       className="group flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-colors duration-150 hover:border-accent"
     >
       <div className="flex items-start gap-3">
-        <Avatar name={professional.name} size="lg" className="size-12 text-base" />
+        <Avatar name={professional.name} src={professional.photo} size="lg" className="size-12 text-base" />
         <div className="min-w-0 flex-1">
           <p className="font-heading leading-snug font-semibold [overflow-wrap:anywhere]">
             {professional.name}

@@ -31,6 +31,8 @@ export interface Professional {
   /** Usuario asociado (rol profesional) */
   userId: string
   name: string
+  /** Foto de perfil como data URL (cuadrada y comprimida); sin foto se muestran las iniciales */
+  photo?: string
   categoryIds: string[]
   bio: string
   yearsExperience: number

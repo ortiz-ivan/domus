@@ -124,7 +124,7 @@ export function CompareScreen({ playing }: ScreenProps) {
           return (
             <div key={p.id} className={cn('rounded-xl border p-3 transition-colors duration-300', highlighted ? 'border-accent shadow-md' : 'border-border')}>
               <div className="flex items-center gap-2.5">
-                <Avatar name={p.name} size="sm" />
+                <Avatar name={p.name} src={p.photo} size="sm" />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[13px] font-semibold">
                     {p.name}
@@ -255,7 +255,7 @@ export function RateScreen({ playing }: ScreenProps) {
     <div className="relative flex h-full flex-col">
       <AppBar title="Calificar y pagar" back />
       <div className="flex flex-1 flex-col items-center px-4 pt-5 text-center">
-        <Avatar name={carlos?.name ?? 'Carlos Benítez'} size="lg" className="size-14 text-lg" />
+        <Avatar name={carlos?.name ?? 'Carlos Benítez'} src={carlos?.photo} size="lg" className="size-14 text-lg" />
         <p className="mt-3 font-heading text-base leading-tight font-bold">¿Cómo fue tu experiencia con Carlos?</p>
         <p className="mt-1 flex gap-1">
           {[1, 2, 3, 4, 5].map((n) => (

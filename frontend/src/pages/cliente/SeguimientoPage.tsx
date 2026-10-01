@@ -111,7 +111,7 @@ export function SeguimientoPage() {
             <Card>
               <p className="text-sm text-muted-foreground">Profesional</p>
               <Link to={`/cliente/profesionales/${professional.id}`} state={backHere} className="mt-2 flex items-center gap-3 rounded-lg hover:underline">
-                <Avatar name={professional.name} />
+                <Avatar name={professional.name} src={professional.photo} />
                 <span>
                   <span className="block font-semibold">{professional.name}</span>
                   <RatingStars value={ratingOf(reviews, professional).average} count={ratingOf(reviews, professional).count} />

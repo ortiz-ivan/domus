@@ -63,7 +63,7 @@ export function ConfirmacionPage() {
 
         <div className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-muted p-4 text-left">
           <div className="flex items-center gap-3">
-            {professional && <Avatar name={professional.name} />}
+            {professional && <Avatar name={professional.name} src={professional.photo} />}
             <div>
               <p className="font-semibold">{professional?.name}</p>
               <p className="text-sm text-muted-foreground">{request.code}</p>

@@ -119,7 +119,7 @@ function ProsScreen() {
         {pros.map(({ p, rating }, i) => (
           <div key={p.id} className={cn('rounded-xl border p-3', i === 0 ? 'border-accent' : 'border-border')}>
             <div className="flex items-center gap-2.5">
-              <Avatar name={p.name} size="sm" />
+              <Avatar name={p.name} src={p.photo} size="sm" />
               <div className="min-w-0">
                 <p className="flex items-center gap-1 text-[13px] font-semibold">
                   {p.name}

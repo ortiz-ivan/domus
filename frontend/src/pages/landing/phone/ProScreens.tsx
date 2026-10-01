@@ -97,7 +97,7 @@ export function ProfileScreen({ playing }: ScreenProps) {
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground">Así te ven los clientes en Plomería:</p>
           <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-accent p-2.5">
-            <Avatar name={carlos?.name ?? 'Carlos Benítez'} size="sm" />
+            <Avatar name={carlos?.name ?? 'Carlos Benítez'} src={carlos?.photo} size="sm" />
             <div className="min-w-0 flex-1">
               <p className="text-[12px] font-semibold">{carlos?.name}</p>
               <p className="flex items-center gap-1 text-[10px]">

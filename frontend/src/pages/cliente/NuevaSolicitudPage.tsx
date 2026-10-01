@@ -200,7 +200,7 @@ export function NuevaSolicitudPage() {
       <BackLink to={`/cliente/profesionales/${professional.id}`} label="Volver al profesional" />
 
       <div className="mb-4 flex items-center gap-3">
-        <Avatar name={professional.name} size="sm" />
+        <Avatar name={professional.name} src={professional.photo} size="sm" />
         <p className="text-sm">
           Solicitud para <span className="font-semibold">{professional.name}</span>
         </p>

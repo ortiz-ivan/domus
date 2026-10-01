@@ -89,7 +89,7 @@ export function AdminProfesionalesPage() {
               return (
                 <li key={p.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <Avatar name={p.name} size="sm" />
+                    <Avatar name={p.name} src={p.photo} size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{p.name}</p>
                       <p className="text-sm text-muted-foreground">{categoriesOf(p)}</p>
@@ -123,7 +123,7 @@ export function AdminProfesionalesPage() {
                   <tr key={p.id} className="border-b border-border last:border-0">
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-3">
-                        <Avatar name={p.name} size="sm" />
+                        <Avatar name={p.name} src={p.photo} size="sm" />
                         <div>
                           <p className="font-medium">{p.name}</p>
                           <p className="text-muted-foreground">{p.city}</p>

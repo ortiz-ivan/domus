@@ -69,7 +69,7 @@ export function ProfessionalProfile({ professional, requestPath, stickyClassName
       <div className="space-y-6">
         <Card>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <Avatar name={professional.name} size="lg" className="size-20 text-2xl" />
+            <Avatar name={professional.name} src={professional.photo} size="lg" className="size-20 text-2xl" />
             <div>
               <h1 className="text-2xl font-bold sm:text-3xl">
                 {professional.name}

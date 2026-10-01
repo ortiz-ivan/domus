@@ -78,7 +78,7 @@ export function CalificacionPage() {
       <ClosingSteps current={1} />
       <Card>
         <form onSubmit={submit} noValidate className="text-center">
-          {professional && <Avatar name={professional.name} size="lg" className="mx-auto" />}
+          {professional && <Avatar name={professional.name} src={professional.photo} size="lg" className="mx-auto" />}
           <h1 className="mt-4 text-2xl font-bold">¿Cómo fue tu experiencia con {professional?.name.split(' ')[0]}?</h1>
           <p className="mt-1 text-muted-foreground">{request.title}</p>
 

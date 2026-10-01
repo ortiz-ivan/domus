@@ -12,7 +12,7 @@ import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/ui/Avatar'
 import { Toaster } from '@/components/ui/Toaster'
 import { cn } from '@/lib/cn'
-import { useCurrentUser } from '@/store/selectors'
+import { useCurrentProfessional, useCurrentUser } from '@/store/selectors'
 import { useSessionStore } from '@/store/session'
 import type { Role } from '@/types'
 
@@ -119,6 +119,7 @@ function MobileDrawer({ items, dialogRef }: { items: NavItem[]; dialogRef: RefOb
 
 export function AppShell({ role }: { role: Role }) {
   const user = useCurrentUser()
+  const professional = useCurrentProfessional()
   const logout = useSessionStore((s) => s.logout)
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -175,7 +176,7 @@ export function AppShell({ role }: { role: Role }) {
         {user && (
           <div className="border-t border-border pt-4">
             <div className="mb-3 flex items-center gap-3 px-2">
-              <Avatar name={user.name} size="sm" />
+              <Avatar name={user.name} src={professional?.photo} size="sm" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{user.name}</p>
                 <p className="truncate text-xs text-muted-foreground">{user.email}</p>

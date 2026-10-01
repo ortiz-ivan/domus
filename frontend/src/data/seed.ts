@@ -243,6 +243,8 @@ const responseRandom = seededRandom(4242)
 const professionals: Professional[] = allProSeeds.map(({ email: _email, phone: _phone, joinedDaysAgo: _joined, ...pro }, i) => ({
   ...pro,
   userId: `u-pro-${i + 1}`,
+  // Retratos de Unsplash, uno por profesional (ver public/images/CREDITOS.md)
+  photo: `/images/profesionales/${pro.id}.webp`,
   plan: PRO_PLANS[pro.id] ?? 'basico',
   responseMinutes: RESPONSE_MINUTES[pro.id] ?? RESPONSE_OPTIONS[Math.floor(responseRandom() * RESPONSE_OPTIONS.length)],
 }))

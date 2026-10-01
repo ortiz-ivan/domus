@@ -1,5 +1,5 @@
-import { BadgeCheck, Clock, MapPin, Sparkles, Star } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { BadgeCheck, Camera, Clock, MapPin, Sparkles, Star, Trash2 } from 'lucide-react'
+import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button, LinkButton } from '@/components/ui/Button'
@@ -9,13 +9,67 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { SelectMenu } from '@/components/ui/SelectMenu'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { CITIES } from '@/data/seed'
+import { buttonClasses } from '@/components/ui/button-styles'
 import { cn } from '@/lib/cn'
 import { formatDate } from '@/lib/format'
+import { compressAvatar } from '@/lib/images'
 import { planOf } from '@/lib/plans'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useCurrentProfessional, useCurrentUser, useDirectory } from '@/store/selectors'
 import { toast } from '@/store/toast'
 import type { Professional } from '@/types'
+
+/** Foto de perfil: se guarda apenas se elige, sin pasar por "Guardar cambios" */
+function ProfilePhoto({ professional }: { professional: Professional }) {
+  const updateProfessional = useDemoStore((s) => s.updateProfessional)
+  const [processing, setProcessing] = useState(false)
+  const [error, setError] = useState('')
+
+  const choose = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = '' // permite volver a elegir el mismo archivo
+    if (!file) return
+    setError('')
+    setProcessing(true)
+    try {
+      updateProfessional(professional.id, { photo: await compressAvatar(file) })
+      toast('Foto de perfil actualizada')
+    } catch {
+      setError('No pudimos leer la foto. Probá con otra imagen (JPG, PNG o WebP).')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const remove = () => {
+    updateProfessional(professional.id, { photo: undefined })
+    toast('Foto de perfil quitada')
+  }
+
+  return (
+    <div>
+      <Avatar name={professional.name} src={professional.photo} size="lg" className="mx-auto size-20 text-2xl" />
+      <div className="mt-3 flex justify-center gap-2">
+        <label className={buttonClasses('outline', 'sm', cn('cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-ring', processing && 'pointer-events-none opacity-50'))}>
+          <Camera className="size-4" aria-hidden="true" />
+          {processing ? 'Procesando…' : professional.photo ? 'Cambiar foto' : 'Subir foto'}
+          <input type="file" accept="image/*" className="sr-only" onChange={choose} disabled={processing} />
+        </label>
+        {professional.photo && (
+          <Button type="button" variant="ghost" size="sm" onClick={remove} disabled={processing}>
+            <Trash2 className="size-4" aria-hidden="true" />
+            Quitar
+          </Button>
+        )}
+      </div>
+      {error && (
+        <p className="mt-2 text-sm font-medium text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
 
 type Errors = Partial<Record<'bio' | 'basePrice' | 'yearsExperience' | 'categoryIds', string>>
 
@@ -114,7 +168,7 @@ export function PerfilPage() {
       <div className="grid gap-6 lg:grid-cols-[20rem_1fr] lg:items-start">
         <div className="space-y-6">
           <Card className="text-center">
-            <Avatar name={professional.name} size="lg" className="mx-auto size-20 text-2xl" />
+            <ProfilePhoto professional={professional} />
             <p className="mt-3 font-heading text-xl font-bold">{professional.name}</p>
             <RatingStars value={rating.average} count={rating.count} className="mt-1 justify-center" />
             <div className="mt-3 flex justify-center">
