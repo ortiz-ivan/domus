@@ -1,3 +1,4 @@
+import { Navigation, Zap } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { BackLink } from '@/components/ui/BackLink'
@@ -5,12 +6,12 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { cn } from '@/lib/cn'
 import { formatDateTime } from '@/lib/format'
 import { MissingResource } from '@/pages/NotFoundPage'
 import { useDemoStore } from '@/store/demo'
 import { toast } from '@/store/toast'
 import { JobDetails } from './JobDetails'
+import { ReasonPicker } from './ReasonPicker'
 import { useProRequest } from './useProRequests'
 
 const REJECT_REASONS = ['No tengo disponibilidad en esa fecha', 'Está fuera de mi zona de trabajo', 'No realizo ese tipo de trabajo', 'Otro motivo']
@@ -18,6 +19,7 @@ const REJECT_REASONS = ['No tengo disponibilidad en esa fecha', 'Está fuera de 
 export function DetalleTrabajoPage() {
   const request = useProRequest()
   const transition = useDemoStore((s) => s.transition)
+  const acceptRequest = useDemoStore((s) => s.accept)
   const commissionRate = useDemoStore((s) => s.settings.commissionRate)
   const navigate = useNavigate()
   // Al redirigir se conserva el origen del link (useBackHere), para que "Volver" siga llevando ahí
@@ -30,8 +32,8 @@ export function DetalleTrabajoPage() {
   if (request.status !== 'pendiente' && request.status !== 'rechazada') return <Navigate to={`/profesional/trabajos/${request.id}`} state={location.state} replace />
 
   const accept = () => {
-    transition(request.id, 'aceptada', 'profesional')
-    toast('Aceptaste el trabajo. El cliente ya fue notificado.')
+    acceptRequest(request.id)
+    toast(request.urgent ? 'Aceptaste y saliste hacia el domicilio. El cliente te ve en el mapa.' : 'Aceptaste el trabajo. El cliente ya fue notificado.')
     navigate(`/profesional/trabajos/${request.id}`)
   }
 
@@ -62,11 +64,22 @@ export function DetalleTrabajoPage() {
 
         {request.status === 'pendiente' && (
           <Card className="lg:sticky lg:top-8">
+            {request.urgent && (
+              <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-status-rejected/10 px-3 py-1 text-sm font-semibold text-status-rejected">
+                <Zap className="size-4" aria-hidden="true" />
+                Urgente: lo necesita ya
+              </p>
+            )}
             <h2 className="font-semibold">¿Tomás este trabajo?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Al aceptar, el cliente recibe la confirmación y ves sus datos de contacto.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {request.urgent
+                ? 'Es un pedido para ahora: al aceptar salís en ese momento hacia el domicilio y el cliente te sigue en el mapa.'
+                : 'Al aceptar, el cliente recibe la confirmación y ves sus datos de contacto.'}
+            </p>
             <div className="mt-5 flex flex-col gap-3">
               <Button size="lg" onClick={accept}>
-                Aceptar trabajo
+                {request.urgent && <Navigation className="size-5" aria-hidden="true" />}
+                {request.urgent ? 'Aceptar y salir ahora' : 'Aceptar trabajo'}
               </Button>
               <Button variant="outline" size="lg" onClick={() => setRejectOpen(true)}>
                 Rechazar
@@ -92,23 +105,7 @@ export function DetalleTrabajoPage() {
           </>
         }
       >
-        <fieldset>
-          <legend className="sr-only">Motivo</legend>
-          <div className="space-y-2">
-            {REJECT_REASONS.map((r) => (
-              <label
-                key={r}
-                className={cn(
-                  'flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 text-sm',
-                  reason === r ? 'border-primary bg-accent-soft' : 'border-border hover:bg-muted',
-                )}
-              >
-                <input type="radio" name="reason" checked={reason === r} onChange={() => setReason(r)} className="size-4 accent-primary" />
-                {r}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <ReasonPicker reasons={REJECT_REASONS} value={reason} onChange={setReason} />
       </Dialog>
     </>
   )

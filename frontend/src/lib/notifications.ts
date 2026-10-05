@@ -38,7 +38,7 @@ function noticeFor(r: ServiceRequest, from: RequestStatus | null, to: RequestSta
   if (from === null) {
     if (viewer.role === 'cliente' || to !== 'pendiente') return null
     return viewer.role === 'profesional'
-      ? { message: `Nueva solicitud de ${clientName()}: ${r.title}`, action: { label: 'Ver', to: `/profesional/solicitudes/${r.id}` } }
+      ? { message: `Nueva solicitud${r.urgent ? ' urgente' : ''} de ${clientName()}: ${r.title}`, action: { label: 'Ver', to: `/profesional/solicitudes/${r.id}` } }
       : { message: `Nueva solicitud ${r.code}: ${r.title}`, action: { label: 'Ver', to: '/admin/solicitudes' } }
   }
 
@@ -52,6 +52,10 @@ function noticeFor(r: ServiceRequest, from: RequestStatus | null, to: RequestSta
   if (viewer.role === 'cliente') {
     const byStatus: Partial<Record<RequestStatus, Notice>> = {
       aceptada: { message: `${proName()} aceptó tu solicitud ${title}`, action: { label: 'Ver', to: base } },
+      en_camino: {
+        message: `${proName()} está en camino${r.trip ? ` · llega en ~${r.trip.etaMinutes} min` : ''}`,
+        action: { label: 'Ver en el mapa', to: base },
+      },
       rechazada: { message: `${proName()} no puede tomar ${title}`, action: { label: 'Buscar otro', to: `/cliente/categorias/${r.categoryId}` } },
       en_proceso: { message: `${proName()} empezó a trabajar en ${title}`, action: { label: 'Seguir', to: base } },
       terminada: { message: `${proName()} terminó ${title}. Confirmá que quedó bien`, action: { label: 'Confirmar', to: `${base}/confirmar` } },
@@ -77,6 +81,13 @@ function noticeFor(r: ServiceRequest, from: RequestStatus | null, to: RequestSta
   return { message: `Pago recibido: ${r.code}${p ? ` · ${formatGs(p.amount)}` : ''}`, action: { label: 'Finanzas', to: '/admin/finanzas' } }
 }
 
+/** Al cliente: el profesional llegó (no es un cambio de estado, es el fin del viaje) */
+function arrivalNotice(r: ServiceRequest, data: Snapshot, viewer: Viewer): Notice | null {
+  if (viewer.role !== 'cliente' || r.clientId !== viewer.userId) return null
+  const name = data.professionals.find((p) => p.id === r.professionalId)?.name.split(' ')[0] ?? 'El profesional'
+  return { message: `${name} llegó a tu domicilio. Dale tu código de inicio`, action: { label: 'Ver código', to: `/cliente/solicitudes/${r.id}` } }
+}
+
 /** Qué avisarle a quien está mirando, comparando el estado anterior con el nuevo (los toasts en vivo) */
 export function diffNotifications(prev: Snapshot, next: Snapshot, viewer: Viewer): Notice[] {
   if (prev.requests === next.requests) return []
@@ -84,9 +95,16 @@ export function diffNotifications(prev: Snapshot, next: Snapshot, viewer: Viewer
   const notices: Notice[] = []
   for (const r of next.requests) {
     const old = before.get(r.id)
-    if (old?.status === r.status) continue
-    const notice = noticeFor(r, old ? old.status : null, r.status, next, viewer)
-    if (notice) notices.push(notice)
+    if (r.trip?.arrivedAt && old?.trip && !old.trip.arrivedAt) {
+      const notice = arrivalNotice(r, next, viewer)
+      if (notice) notices.push(notice)
+    }
+    // Un aviso por cada paso nuevo del historial: si llegan dos juntos (aceptar un urgente
+    // también lo pone en camino), se avisan los dos. Si el historial se acortó (reinicio), nada.
+    for (let i = old ? old.history.length : 0; i < r.history.length; i++) {
+      const notice = noticeFor(r, i === 0 ? null : r.history[i - 1].status, r.history[i].status, next, viewer)
+      if (notice) notices.push(notice)
+    }
   }
   return notices
 }
@@ -102,6 +120,9 @@ export function notificationFeed(data: Snapshot, viewer: Viewer, limit = 30): Fe
       const notice = noticeFor(r, i === 0 ? null : r.history[i - 1].status, entry.status, data, viewer)
       if (notice) items.push({ ...notice, id: `${r.id}:${i}`, at: entry.at })
     })
+    const arrivedAt = r.trip?.arrivedAt
+    const arrival = arrivedAt ? arrivalNotice(r, data, viewer) : null
+    if (arrival && arrivedAt) items.push({ ...arrival, id: `${r.id}:llegada`, at: arrivedAt })
   }
   return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)
 }

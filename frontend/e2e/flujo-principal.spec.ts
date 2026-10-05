@@ -44,10 +44,12 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await continuar.click()
   await cliente.getByLabel('Describí el problema').fill(descripcion)
   await continuar.click()
-  await cliente.getByRole('radio', { name: /Esta semana/ }).check()
-  await cliente.getByRole('radio', { name: /Tarde/ }).check()
+  // "Lo necesito ya": es para ahora, así que no se elige fecha ni franja horaria
+  await cliente.getByRole('radio', { name: /Lo necesito ya/ }).check()
+  await expect(cliente.getByRole('radio', { name: /Tarde/ })).toHaveCount(0)
   await continuar.click()
-  await cliente.getByLabel('Dirección').fill('Av. España 1234, casi Brasil')
+  // La dirección guardada de María ya viene precargada
+  await expect(cliente.getByLabel('Dirección')).toHaveValue('Av. España 1234, casi Brasil')
   // La ciudad se elige en el selector propio, nombrado por la etiqueta visible del campo
   await cliente.getByRole('combobox', { name: 'Ciudad' }).click()
   await cliente.getByRole('option', { name: 'Luque' }).click()
@@ -55,6 +57,7 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await expect(cliente.getByText(descripcion)).toBeVisible()
   await expect(cliente.getByText('Av. España 1234, casi Brasil, Luque')).toBeVisible()
   await expect(cliente.getByText('Presupuesto estimado')).toBeVisible()
+  await expect(cliente.getByText('Ahora, lo antes posible')).toBeVisible()
   await cliente.getByRole('button', { name: 'Enviar solicitud' }).click()
 
   await expect(cliente).toHaveURL(/\/cliente\/solicitudes\/r-/)
@@ -68,9 +71,17 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await nueva.click()
   await expect(pro.getByText(descripcion)).toBeVisible()
   await expect(pro.getByText(/el cliente vio un presupuesto estimado/)).toBeVisible()
-  await pro.getByRole('button', { name: 'Aceptar trabajo' }).click()
+  // Es urgente: al aceptar, el profesional sale en ese momento hacia el domicilio
+  await expect(pro.getByText('Urgente: lo necesita ya')).toBeVisible()
+  await pro.getByRole('button', { name: 'Aceptar y salir ahora' }).click()
 
   // 5-6. Seguimiento y finalización
+  // El cliente lo ve en camino, en el mapa, con los minutos que faltan
+  await expect(cliente.getByRole('heading', { name: 'Carlos está en camino' })).toBeVisible()
+  await expect(cliente.getByRole('img', { name: /Mapa con el recorrido de Carlos Benítez/ })).toBeVisible()
+  await pro.getByRole('button', { name: 'Avisar que llegué' }).click()
+  await expect(cliente.getByRole('heading', { name: 'Carlos llegó a tu domicilio' })).toBeVisible()
+
   // El profesional inicia con el código que el cliente ve en su seguimiento
   const codigo = (await cliente.getByTestId('start-code').textContent())!.trim()
   await pro.getByRole('button', { name: 'Iniciar trabajo' }).click()
@@ -102,7 +113,42 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
 
   // La reseña con su foto aparece primera en el perfil público de Carlos
   await cliente.goto('/profesionales/p-1')
-  await expect(cliente.getByText('Muy prolijo y puntual.')).toBeVisible()
+  await expect(cliente.getByText('Muy prolijo y puntual.', { exact: true })).toBeVisible()
   await cliente.getByRole('button', { name: 'Foto 1 del trabajo, ampliar' }).first().click()
   await expect(cliente.getByRole('dialog')).toBeVisible()
+})
+
+/** Pedido con fecha: el calendario propio (no el del navegador) no deja elegir hoy y se maneja con teclado */
+test('el cliente elige fecha y franja en el calendario de la demo', async ({ page }) => {
+  await page.goto('/ingresar?como=cliente')
+  await page.goto('/cliente/solicitudes/nueva?profesional=p-1')
+  const continuar = page.getByRole('button', { name: 'Continuar' })
+  await page.getByRole('radio').first().check()
+  await continuar.click()
+  await page.getByLabel('Describí el problema').fill('Se tapó la cañería del lavadero y no desagota.')
+  await continuar.click()
+
+  await page.getByRole('radio', { name: /Elegir una fecha/ }).check()
+  // Sin fecha no avanza, y el foco va al calendario
+  await page.getByRole('radio', { name: /Tarde/ }).check()
+  await continuar.click()
+  await expect(page.getByText('Elegí la fecha.')).toBeVisible()
+
+  const fecha = page.getByRole('button', { name: 'Fecha' })
+  await expect(fecha).toBeFocused()
+  await fecha.click()
+  const calendario = page.getByRole('dialog')
+  await expect(calendario).toBeVisible()
+  // Hoy no se puede: es para "Lo necesito ya" (el último día del mes, hoy ni aparece: abre en el mes de mañana)
+  await expect(calendario.locator('[aria-current="date"]:not([disabled])')).toHaveCount(0)
+  // Teclado: abre en mañana; flecha derecha = pasado mañana; Enter elige
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('Enter')
+  await expect(calendario).toBeHidden()
+  await expect(fecha).not.toHaveText(/Elegí una fecha/)
+
+  await continuar.click()
+  await continuar.click()
+  await expect(page.getByRole('heading', { name: 'Revisá tu solicitud' })).toBeVisible()
+  await expect(page.getByText(/· Tarde \(13 a 18 h\)/)).toBeVisible()
 })

@@ -38,6 +38,8 @@
 
   /* Movimiento */
   --animate-fade-in: fade-in 200ms ease-out;
+  /* Aviso de la otra parte: baja desde arriba como una notificación del celular */
+  --animate-notice-in: notice-in 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
   /* Barra de avance de la rotación automática (su duración la fija el componente) */
   --animate-progress: progress linear forwards;
 
@@ -47,6 +49,17 @@
     }
     to {
       transform: scaleX(1);
+    }
+  }
+
+  @keyframes notice-in {
+    from {
+      opacity: 0;
+      transform: translateY(-120%);
+    }
+    to {
+      opacity: 1;
+      transform: none;
     }
   }
 

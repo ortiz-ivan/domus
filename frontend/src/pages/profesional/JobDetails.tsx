@@ -2,7 +2,7 @@ import { CalendarDays, Clock, Lock, MapPin, Phone } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/components/ui/Card'
 import { formatRange } from '@/lib/estimates'
-import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
+import { formatDate, formatGs, timeSlotLabel } from '@/lib/format'
 import { useDirectory } from '@/store/selectors'
 import type { ServiceRequest } from '@/types'
 
@@ -21,7 +21,7 @@ export function JobDetails({ request, commissionRate }: { request: ServiceReques
         <dl className="mt-4 grid gap-3 sm:grid-cols-2">
           {[
             { icon: CalendarDays, label: 'Fecha', value: formatDate(request.date) },
-            { icon: Clock, label: 'Horario', value: TIME_SLOT_LABELS[request.timeSlot] },
+            { icon: Clock, label: 'Horario', value: timeSlotLabel(request) },
             { icon: MapPin, label: 'Dirección', value: revealed ? `${request.address}, ${request.city}` : `${request.city} (dirección exacta al aceptar)` },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex gap-3">

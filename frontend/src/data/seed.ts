@@ -34,7 +34,8 @@ const DAY = 24 * 60 * 60 * 1000
 function daysAgo(days: number, hour = 10): string {
   const d = new Date(Date.now() - days * DAY)
   d.setHours(hour, 0, 0, 0)
-  return d.toISOString()
+  // Hoy a una hora que todavía no llegó: queda en este momento, nunca en el futuro
+  return new Date(Math.min(d.getTime(), Date.now())).toISOString()
 }
 
 function dateOnly(daysFromToday: number): string {
@@ -80,7 +81,7 @@ const categories: Category[] = [
 export const CITIES = ['Asunción', 'Luque', 'San Lorenzo', 'Lambaré', 'Fernando de la Mora'] as const
 
 const clients: User[] = [
-  { id: 'u-cli-1', role: 'cliente', name: 'María González', email: 'maria.gonzalez@demo.com', phone: '0981 123 456', city: 'Asunción', createdAt: daysAgo(120), active: true },
+  { id: 'u-cli-1', role: 'cliente', name: 'María González', email: 'maria.gonzalez@demo.com', phone: '0981 123 456', city: 'Asunción', address: 'Av. España 1234, casi Brasil', createdAt: daysAgo(120), active: true },
   { id: 'u-cli-2', role: 'cliente', name: 'Jorge Villalba', email: 'jorge.villalba@demo.com', phone: '0982 234 567', city: 'Luque', createdAt: daysAgo(95), active: true },
   { id: 'u-cli-3', role: 'cliente', name: 'Lucía Fernández', email: 'lucia.fernandez@demo.com', phone: '0983 345 678', city: 'San Lorenzo', createdAt: daysAgo(60), active: true },
   { id: 'u-cli-4', role: 'cliente', name: 'Diego Ayala', email: 'diego.ayala@demo.com', phone: '0984 456 789', city: 'Lambaré', createdAt: daysAgo(30), active: false },
@@ -365,6 +366,8 @@ const reviews: Review[] = [
 // ---------------------------------------------------------------------------
 // Historial de los últimos 6 meses, para que tablas y gráficos tengan volumen.
 // Pseudoaleatorio con semilla fija: siempre genera los mismos datos.
+// Además del historial general, el mes en curso siempre tiene trabajos pagados
+// (más cuanto más avanzado está el mes), así las estadísticas "del mes" nunca quedan en cero.
 
 function seededRandom(seed: number) {
   let a = seed
@@ -396,15 +399,23 @@ function buildHistory(): { requests: SeedRequest[]; reviews: Review[] } {
   const out: SeedRequest[] = []
   const outReviews: Review[] = []
 
-  for (let i = 0; i < 60; i++) {
+  const OLDER = 60
+  const dayOfMonth = new Date().getDate()
+  const thisMonth = 3 + Math.floor(dayOfMonth / 3)
+
+  for (let i = 0; i < OLDER + thisMonth; i++) {
+    const inThisMonth = i >= OLDER
     // El profesional demo recibe más trabajos para que sus ganancias tengan historia
-    const pro = random() < 0.25 ? professionals[0] : pick(professionals)
+    // (y al menos dos este mes, para que "Ganancias del mes" muestre algo)
+    const pro = (inThisMonth && i < OLDER + 2) || random() < 0.25 ? professionals[0] : pick(professionals)
     const client = pick(historicClients)
     const categoryId = pick(pro.categoryIds)
     const category = categories.find((c) => c.id === categoryId)!
-    const days = 8 + Math.floor(random() * 172)
+    // Entre el día 1 y hoy, o entre 8 y 180 días atrás
+    const days = inThisMonth ? Math.floor(random() * dayOfMonth) : 8 + Math.floor(random() * 172)
     const price = Math.round((pro.basePrice * (1 + random() * 1.2)) / 10000) * 10000
-    const roll = random()
+    // Los del mes en curso están todos pagados
+    const roll = inThisMonth ? 1 : random()
     const history: StatusChange[] =
       roll < 0.08
         ? [{ status: 'pendiente', at: daysAgo(days + 1, 9) }, { status: 'cancelada', at: daysAgo(days, 11) }]

@@ -7,6 +7,7 @@ import type { ServiceRequest } from '@/types'
 const STEP_LABELS: Record<string, string> = {
   pendiente: 'Solicitud enviada',
   aceptada: 'Aceptada por el profesional',
+  en_camino: 'En camino a tu domicilio',
   en_proceso: 'Trabajo en proceso',
   terminada: 'Trabajo terminado',
   confirmada: 'Confirmado por el cliente',
@@ -17,9 +18,13 @@ const STEP_LABELS: Record<string, string> = {
 export function RequestTimeline({ request }: { request: ServiceRequest }) {
   const reached = new Map(request.history.map((h) => [h.status, h]))
   const stopped = request.status === 'rechazada' || request.status === 'cancelada'
+  // Si se frenó (por ejemplo, cancelada después de aceptar), se muestran los pasos que llegaron a ocurrir y el corte
+  // "En camino" es opcional: si el profesional inició directo, ese paso no se muestra
+  const skippedTrip = !reached.has('en_camino') && request.status !== 'pendiente' && request.status !== 'aceptada'
+  const flow = skippedTrip ? FLOW_STEPS.filter((s) => s !== 'en_camino') : FLOW_STEPS
+  const steps = stopped ? [...flow.filter((s) => reached.has(s)), request.status] : flow
   // Pagada es el final del camino: todos los pasos se muestran completos
-  const currentIndex = request.status === 'pagada' ? -1 : FLOW_STEPS.indexOf(request.status)
-  const steps = stopped ? (['pendiente', request.status] as const) : FLOW_STEPS
+  const currentIndex = request.status === 'pagada' ? -1 : flow.indexOf(request.status)
 
   return (
     <ol className="relative">

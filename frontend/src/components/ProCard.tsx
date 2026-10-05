@@ -7,9 +7,11 @@ import { RatingStars } from '@/components/ui/RatingStars'
 import { cn } from '@/lib/cn'
 import { estimateFor, formatRange } from '@/lib/estimates'
 import { formatGs } from '@/lib/format'
+import { formatKm } from '@/lib/geo'
+import { clientHome, distanceToKm } from '@/lib/places'
 import { planOf } from '@/lib/plans'
 import { formatResponseTime, isFastResponder } from '@/lib/responseTime'
-import type { RatingSummary } from '@/store/selectors'
+import { useCurrentUser, type RatingSummary } from '@/store/selectors'
 import type { Professional } from '@/types'
 
 interface ProCardProps {
@@ -62,6 +64,10 @@ function ResponseTime({ minutes, className }: { minutes: number; className?: str
 export function ProCard({ professional, rating, categoryName, to, variant = 'card', service }: ProCardProps) {
   const estimate = service ? estimateFor(professional.basePrice, service) : null
   const backHere = useBackHere()
+  // Al cliente con dirección guardada se le muestra a qué distancia está cada profesional (como en las apps de delivery)
+  const user = useCurrentUser()
+  const home = user?.role === 'cliente' ? clientHome(user) : null
+  const km = home ? distanceToKm(professional, home) : null
 
   if (variant === 'compact') {
     return (
@@ -129,6 +135,7 @@ export function ProCard({ professional, rating, categoryName, to, variant = 'car
         <Badge>
           <MapPin className="size-3.5" aria-hidden="true" />
           {professional.city}
+          {km !== null && <span className="font-semibold text-foreground">· a {formatKm(km)}</span>}
         </Badge>
       </div>
 

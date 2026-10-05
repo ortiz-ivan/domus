@@ -1,13 +1,16 @@
-import { ArrowLeft, ArrowRight, Clock, HardHat, RotateCcw, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { ArrowLeft, ArrowRight, Clock, Columns2, HardHat, RotateCcw, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { isRoleEnabled, PRESENTER_TOOLS } from '@/app/config'
+import { IS_EMBEDDED, isRoleEnabled, PRESENTER_TOOLS } from '@/app/config'
 import { ROLE_HOME, ROLE_LABELS } from '@/app/navigation'
 import { Logo } from '@/components/Logo'
+import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
+import { Dialog } from '@/components/ui/Dialog'
 import { DEMO_USER_IDS } from '@/data/seed'
 import { cn } from '@/lib/cn'
 import { useDemoStore } from '@/store/demo'
+import { useDemoProfessionals } from '@/store/selectors'
 import { useSessionStore } from '@/store/session'
 import type { Role } from '@/types'
 
@@ -27,24 +30,36 @@ export function RoleSelectPage() {
   const users = useDemoStore((s) => s.users)
   const resetDemo = useDemoStore((s) => s.resetDemo)
 
+  const demoPros = useDemoProfessionals()
+  const [pickPro, setPickPro] = useState(false)
+
   const suggested = isRole(params.get('rol')) ? (params.get('rol') as Role) : null
   const next = params.get('next')
   const auto = params.get('como')
 
-  const enter = (role: Role) => {
-    if (!isRoleEnabled(role)) return
-    login(DEMO_USER_IDS[role])
+  const enterAs = (role: Role, userId: string) => {
+    login(userId)
     // Solo se respeta "next" si pertenece a la sección del rol elegido
     navigate(next?.startsWith(ROLE_HOME[role]) ? next : ROLE_HOME[role])
   }
 
-  // /ingresar?como=profesional entra directo: lo usan los controles del presentador al abrir otra pestaña
+  const enter = (role: Role) => {
+    if (!isRoleEnabled(role)) return
+    // Hay un profesional por categoría: primero se elige con cuál entrar
+    if (role === 'profesional' && demoPros.length > 1) setPickPro(true)
+    else enterAs(role, DEMO_USER_IDS[role])
+  }
+
+  // /ingresar?como=profesional entra directo (con Carlos, o con otro: &pro=p-3). Lo usan los controles
+  // del presentador al abrir otra pestaña y los celulares de la vista dividida.
   const autoRole = isRole(auto) && isRoleEnabled(auto) ? auto : null
+  const autoPro = params.get('pro')
+  const autoUserId = (autoRole === 'profesional' && demoPros.find((d) => d.professional.id === autoPro)?.professional.userId) || (autoRole && DEMO_USER_IDS[autoRole])
   useEffect(() => {
-    if (!autoRole) return
-    login(DEMO_USER_IDS[autoRole])
+    if (!autoRole || !autoUserId) return
+    login(autoUserId)
     navigate(ROLE_HOME[autoRole], { replace: true })
-  }, [autoRole, login, navigate])
+  }, [autoRole, autoUserId, login, navigate])
 
   const reset = () => {
     if (window.confirm('¿Reiniciar la demo? Se pierden las solicitudes, calificaciones y pagos creados.')) resetDemo()
@@ -101,7 +116,11 @@ export function RoleSelectPage() {
                   <span className="mt-1 flex-1 text-sm text-muted-foreground">{description}</span>
                   {enabled ? (
                     <>
-                      {user && <span className="mt-4 text-xs text-muted-foreground">Entrás como {user.name}</span>}
+                      {role === 'profesional' && demoPros.length > 1 ? (
+                        <span className="mt-4 text-xs text-muted-foreground">Elegís uno de cada categoría: {demoPros.length} oficios</span>
+                      ) : (
+                        user && <span className="mt-4 text-xs text-muted-foreground">Entrás como {user.name}</span>
+                      )}
                       <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
                         Ingresar
                         <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true" />
@@ -119,7 +138,43 @@ export function RoleSelectPage() {
           })}
         </ul>
 
-        <Button variant="ghost" size="sm" className="mt-8 text-muted-foreground" onClick={reset}>
+        {PRESENTER_TOOLS && !IS_EMBEDDED && (
+          <Link
+            to="/presentacion"
+            className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary hover:bg-muted"
+          >
+            <Columns2 className="size-4" aria-hidden="true" />
+            Vista dividida para la TV: cliente y profesional lado a lado
+          </Link>
+        )}
+
+        <Dialog
+          open={pickPro}
+          onClose={() => setPickPro(false)}
+          title="¿Con qué profesional entrás?"
+          description="Uno por categoría: así recibís los pedidos que el cliente haga en ese oficio."
+        >
+          <ul className="space-y-2">
+            {demoPros.map(({ category, professional }) => (
+              <li key={professional.id}>
+                <button
+                  type="button"
+                  onClick={() => enterAs('profesional', professional.userId)}
+                  className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left transition-colors duration-150 hover:border-accent hover:bg-muted"
+                >
+                  <Avatar name={professional.name} src={professional.photo} size="sm" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">{professional.name}</span>
+                    <span className="block text-sm text-muted-foreground">{category.name}</span>
+                  </span>
+                  <ArrowRight className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Dialog>
+
+        <Button variant="ghost" size="sm" className={cn(PRESENTER_TOOLS ? 'mt-4' : 'mt-8', 'text-muted-foreground')} onClick={reset}>
           <RotateCcw className="size-4" aria-hidden="true" />
           Reiniciar datos de la demo
         </Button>

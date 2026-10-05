@@ -7,6 +7,8 @@ export interface User {
   email: string
   phone: string
   city: string
+  /** Dirección guardada del cliente: precarga el formulario de solicitud */
+  address?: string
   createdAt: string
   active: boolean
 }
@@ -58,6 +60,7 @@ export type RequestStatus =
   | 'pendiente' // creada por el cliente, esperando respuesta
   | 'rechazada' // el profesional no la tomó
   | 'aceptada' // el profesional la aceptó, aún no empezó
+  | 'en_camino' // el profesional va hacia el domicilio (opcional: puede iniciar directo si ya está ahí)
   | 'en_proceso' // el profesional está trabajando
   | 'terminada' // el profesional marcó el trabajo como terminado
   | 'confirmada' // el cliente confirmó que se realizó bien
@@ -70,6 +73,21 @@ export interface StatusChange {
   status: RequestStatus
   at: string
   note?: string
+}
+
+/** Punto en el mapa: [latitud, longitud] */
+export type LatLng = [number, number]
+
+/** Viaje simulado del profesional al domicilio. La ruta no se guarda: sale de quién va y a dónde (lib/places.ts). */
+export interface Trip {
+  startedAt: string
+  /** Cuánto dura el viaje en la demo (acelerado: unos segundos por cada minuto estimado) */
+  durationMs: number
+  /** Minutos que se le muestran al cliente, como si fuera un viaje real */
+  etaMinutes: number
+  distanceKm: number
+  /** El profesional avisó que llegó (antes de que termine el tiempo, o al terminar) */
+  arrivedAt?: string
 }
 
 export interface ServiceRequest {
@@ -85,6 +103,8 @@ export interface ServiceRequest {
   /** Fecha solicitada (YYYY-MM-DD) */
   date: string
   timeSlot: TimeSlot
+  /** "Lo necesito ya": es para ahora, y al aceptar el profesional sale de inmediato hacia el domicilio */
+  urgent?: boolean
   status: RequestStatus
   history: StatusChange[]
   /** Monto final acordado, en guaraníes */
@@ -93,6 +113,7 @@ export interface ServiceRequest {
   estimate?: PriceRange
   /** Código que el cliente le da al profesional al llegar; sin él no se puede iniciar el trabajo */
   startCode: string
+  trip?: Trip
   createdAt: string
 }
 

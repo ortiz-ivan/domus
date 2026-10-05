@@ -2,7 +2,7 @@ import { Info, LogOut, Menu, X } from 'lucide-react'
 import { useEffect, useRef, type RefObject } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { BOTTOM_NAV_MAX, isNavItemActive, NAVIGATION, ROLE_LABELS, type NavItem } from '@/app/navigation'
-import { CAN_REQUEST, PRESENTER_TOOLS } from '@/app/config'
+import { CAN_REQUEST, IS_EMBEDDED, PRESENTER_TOOLS } from '@/app/config'
 import { documentTitle, usePageTitle } from '@/app/pageTitle'
 import { useLiveNotifications } from '@/app/useLiveNotifications'
 import { useNavBadges } from '@/app/useNavBadges'
@@ -241,7 +241,8 @@ export function AppShell({ role }: { role: Role }) {
       </main>
 
       {useBottomNav ? <BottomNav items={items} /> : <MobileDrawer items={items} dialogRef={drawerRef} />}
-      {PRESENTER_TOOLS && <DemoControls role={role} hasBottomNav={useBottomNav} />}
+      {/* Dentro de la vista dividida los controles están en la página que contiene los celulares */}
+      {PRESENTER_TOOLS && !IS_EMBEDDED && <DemoControls role={role} hasBottomNav={useBottomNav} />}
       <Toaster />
     </div>
   )

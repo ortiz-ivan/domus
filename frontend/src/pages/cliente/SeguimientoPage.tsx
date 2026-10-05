@@ -2,6 +2,7 @@ import { CalendarDays, Clock, KeyRound, MapPin, Receipt } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { RequestTimeline } from '@/components/RequestTimeline'
+import { TripTracker } from '@/components/TripTracker'
 import { Avatar } from '@/components/ui/Avatar'
 import { useBackHere } from '@/app/useBackHere'
 import { BackLink } from '@/components/ui/BackLink'
@@ -10,7 +11,7 @@ import { Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
+import { formatDate, formatGs, timeSlotLabel } from '@/lib/format'
 import { canTransition, STATUS_META } from '@/lib/status'
 import { MissingResource } from '@/pages/NotFoundPage'
 import { useDemoStore } from '@/store/demo'
@@ -80,7 +81,11 @@ export function SeguimientoPage() {
             </Card>
           )}
 
-          {request.status === 'aceptada' && (
+          {request.status === 'en_camino' && request.trip && professional && (
+            <TripTracker request={request} trip={request.trip} professional={professional} viewer="cliente" />
+          )}
+
+          {(request.status === 'aceptada' || request.status === 'en_camino') && (
             <Card className="flex gap-4">
               <KeyRound className="mt-1 size-6 shrink-0 text-primary" aria-hidden="true" />
               <div>
@@ -106,7 +111,7 @@ export function SeguimientoPage() {
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
                 { icon: CalendarDays, label: 'Fecha', value: formatDate(request.date) },
-                { icon: Clock, label: 'Horario', value: TIME_SLOT_LABELS[request.timeSlot] },
+                { icon: Clock, label: 'Horario', value: timeSlotLabel(request) },
                 { icon: MapPin, label: 'Dirección', value: `${request.address}, ${request.city}` },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex gap-3">

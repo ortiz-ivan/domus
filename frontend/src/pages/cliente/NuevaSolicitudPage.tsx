@@ -9,11 +9,12 @@ import { BackLink } from '@/components/ui/BackLink'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { controlClasses, Field, Input, Textarea } from '@/components/ui/Field'
+import { DatePicker } from '@/components/ui/DatePicker'
 import { SelectMenu } from '@/components/ui/SelectMenu'
 import { CITIES } from '@/data/seed'
 import { cn } from '@/lib/cn'
 import { estimateFor, formatRange } from '@/lib/estimates'
-import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
+import { formatDate, formatGs, TIME_SLOT_LABELS, timeSlotAt, URGENT_LABEL } from '@/lib/format'
 import { MissingResource } from '@/pages/NotFoundPage'
 import { useDemoStore } from '@/store/demo'
 import { useCurrentUser, useDirectory } from '@/store/selectors'
@@ -21,7 +22,7 @@ import { toast } from '@/store/toast'
 import type { TimeSlot } from '@/types'
 
 const OTHER = '__otro__'
-type When = 'urgente' | 'semana' | 'fecha'
+type When = 'urgente' | 'fecha'
 
 interface FormState {
   service: string
@@ -39,12 +40,12 @@ type Errors = Partial<Record<keyof FormState, string>>
 
 const STEPS = ['¿Qué necesitás?', 'Contanos más', '¿Para cuándo lo necesitás?', '¿Dónde es el trabajo?', 'Revisá tu solicitud']
 
-const isoIn = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10)
+// Fecha local (en-CA da YYYY-MM-DD): con toISOString, de noche en Paraguay ya sería el día siguiente (UTC)
+const isoIn = (days: number) => new Date(Date.now() + days * 86_400_000).toLocaleDateString('en-CA')
 
 const WHEN_OPTIONS: { value: When; title: string; hint: string }[] = [
-  { value: 'urgente', title: 'Lo necesito ya', hint: 'Dentro de las próximas 48 horas' },
-  { value: 'semana', title: 'Esta semana', hint: 'No es urgente' },
-  { value: 'fecha', title: 'Elegir una fecha', hint: 'Tengo un día en mente' },
+  { value: 'urgente', title: 'Lo necesito ya', hint: 'Al aceptar, el profesional sale hacia tu domicilio y lo seguís en el mapa' },
+  { value: 'fecha', title: 'Elegir una fecha', hint: 'Tengo un día y un horario en mente' },
 ]
 
 /** Opción grande tipo tarjeta sobre un radio nativo */
@@ -95,7 +96,7 @@ export function NuevaSolicitudPage() {
     when: '',
     date: '',
     timeSlot: '',
-    address: '',
+    address: user?.address ?? '',
     city: user?.city ?? CITIES[0],
   })
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -134,7 +135,9 @@ export function NuevaSolicitudPage() {
   const title = form.service === OTHER ? form.customTitle.trim() : form.service
   // "Otro problema" no tiene estimado: se cotiza en la visita
   const estimate = form.service && form.service !== OTHER ? estimateFor(professional.basePrice, form.service) : null
-  const date = form.when === 'urgente' ? isoIn(1) : form.when === 'semana' ? isoIn(4) : form.date
+  // Urgente: es para hoy, ahora (la franja se guarda según la hora actual)
+  const urgent = form.when === 'urgente'
+  const date = urgent ? isoIn(0) : form.date
 
   const validate = (current: number): Errors => {
     const e: Errors = {}
@@ -147,7 +150,7 @@ export function NuevaSolicitudPage() {
       if (!form.when) e.when = 'Elegí para cuándo lo necesitás.'
       if (form.when === 'fecha' && !form.date) e.date = 'Elegí la fecha.'
       if (form.when === 'fecha' && form.date && form.date < isoIn(1)) e.date = 'La fecha tiene que ser a partir de mañana.'
-      if (!form.timeSlot) e.timeSlot = 'Elegí una franja horaria.'
+      if (form.when === 'fecha' && !form.timeSlot) e.timeSlot = 'Elegí una franja horaria.'
     }
     if (current === 3 && form.address.trim().length < 5) e.address = 'Ingresá la dirección con calle y número.'
     return e
@@ -176,7 +179,8 @@ export function NuevaSolicitudPage() {
       address: form.address.trim(),
       city: form.city,
       date,
-      timeSlot: form.timeSlot as TimeSlot,
+      timeSlot: urgent ? timeSlotAt(new Date()) : (form.timeSlot as TimeSlot),
+      ...(urgent ? { urgent } : {}),
       price: professional.basePrice,
       ...(estimate ? { estimate } : {}),
     })
@@ -191,7 +195,7 @@ export function NuevaSolicitudPage() {
   const summary: { label: string; value: ReactNode; step: number }[] = [
     { label: 'Trabajo', value: title, step: 0 },
     { label: 'Detalle', value: form.description, step: 1 },
-    { label: 'Fecha', value: date ? `${formatDate(date)} · ${form.timeSlot ? TIME_SLOT_LABELS[form.timeSlot] : ''}` : '', step: 2 },
+    { label: 'Fecha', value: urgent ? URGENT_LABEL : date ? `${formatDate(date)} · ${form.timeSlot ? TIME_SLOT_LABELS[form.timeSlot] : ''}` : '', step: 2 },
     { label: 'Dirección', value: `${form.address}, ${form.city}`, step: 3 },
   ]
 
@@ -301,32 +305,44 @@ export function NuevaSolicitudPage() {
                 <ErrorText id="err-when">{errors.when}</ErrorText>
               </fieldset>
 
+              {/* Lo urgente es para ahora: fecha y franja horaria solo se eligen en la otra opción */}
               {form.when === 'fecha' && (
-                <Field label="Fecha" required error={errors.date}>
-                  {(props) => <Input {...props} data-field="date" type="date" min={isoIn(1)} value={form.date} onChange={(e) => update('date', e.target.value)} />}
-                </Field>
+                <>
+                  <Field label="Fecha" required error={errors.date}>
+                    {(props) => (
+                      <DatePicker
+                        {...props}
+                        label="Fecha"
+                        data-field="date"
+                        min={isoIn(1)}
+                        value={form.date}
+                        onChange={(date) => update('date', date)}
+                        triggerClassName={controlClasses}
+                      />
+                    )}
+                  </Field>
+                  <fieldset aria-describedby={errors.timeSlot ? 'err-slot' : undefined}>
+                    <legend className="mb-3 font-semibold">Franja horaria</legend>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {(Object.keys(TIME_SLOT_LABELS) as TimeSlot[]).map((slot, i) => {
+                        const [label, hours] = TIME_SLOT_LABELS[slot].split(' (')
+                        return (
+                          <div key={slot} data-field={i === 0 ? 'timeSlot' : undefined}>
+                            <OptionCard name="slot" title={label} hint={hours.replace(')', '')} checked={form.timeSlot === slot} onChange={() => update('timeSlot', slot)} />
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <ErrorText id="err-slot">{errors.timeSlot}</ErrorText>
+                  </fieldset>
+                </>
               )}
-
-              <fieldset aria-describedby={errors.timeSlot ? 'err-slot' : undefined}>
-                <legend className="mb-3 font-semibold">Franja horaria</legend>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {(Object.keys(TIME_SLOT_LABELS) as TimeSlot[]).map((slot, i) => {
-                    const [label, hours] = TIME_SLOT_LABELS[slot].split(' (')
-                    return (
-                      <div key={slot} data-field={i === 0 ? 'timeSlot' : undefined}>
-                        <OptionCard name="slot" title={label} hint={hours.replace(')', '')} checked={form.timeSlot === slot} onChange={() => update('timeSlot', slot)} />
-                      </div>
-                    )
-                  })}
-                </div>
-                <ErrorText id="err-slot">{errors.timeSlot}</ErrorText>
-              </fieldset>
             </div>
           )}
 
           {step === 3 && (
             <div className="space-y-5">
-              <Field label="Dirección" required error={errors.address} hint="Calle, número y alguna referencia.">
+              <Field label="Dirección" required error={errors.address} hint={user?.address ? 'Tu dirección guardada. Podés cambiarla si el trabajo es en otro lugar.' : 'Calle, número y alguna referencia.'}>
                 {(props) => (
                   <Input
                     {...props}

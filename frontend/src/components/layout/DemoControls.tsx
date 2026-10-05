@@ -1,4 +1,4 @@
-import { Check, ExternalLink, Presentation, RotateCcw } from 'lucide-react'
+import { Check, Columns2, ExternalLink, Presentation, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ROLE_HOME, ROLE_LABELS } from '@/app/navigation'
@@ -96,6 +96,15 @@ export function DemoControls({ role, hasBottomNav }: { role: Role; hasBottomNav:
                 </Button>
               ))}
             </div>
+          </section>
+
+          <section>
+            <h3 className="mb-1 text-sm font-semibold">Vista dividida para la TV</h3>
+            <p className="mb-2 text-sm text-muted-foreground">Cliente y profesional en dos celulares lado a lado, en esta pestaña.</p>
+            <Button variant="outline" onClick={() => navigate('/presentacion')} className="w-full justify-between">
+              Abrir vista dividida
+              <Columns2 className="size-4" aria-hidden="true" />
+            </Button>
           </section>
 
           <section className="border-t border-border pt-5">

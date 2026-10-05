@@ -84,6 +84,55 @@ describe('flujo principal de la demo', () => {
     store().transition(started, 'en_proceso', 'profesional')
     expect(store().transition(started, 'cancelada', 'cliente')).toBe(false)
   })
+
+  it('el profesional puede echarse atrás mientras el trabajo no empezó', () => {
+    const accepted = store().createRequest(newInput())
+    store().transition(accepted, 'aceptada', 'profesional')
+    expect(store().transition(accepted, 'rechazada', 'profesional', 'Tuve un imprevisto')).toBe(true)
+    expect(requestById(accepted).history.at(-1)).toMatchObject({ status: 'rechazada', note: 'Tuve un imprevisto' })
+
+    const started = store().createRequest(newInput())
+    store().transition(started, 'aceptada', 'profesional')
+    store().transition(started, 'en_proceso', 'profesional')
+    expect(store().transition(started, 'rechazada', 'profesional')).toBe(false)
+  })
+  it('el profesional sale hacia el domicilio, llega e inicia con el código', () => {
+    const id = store().createRequest(newInput())
+    expect(store().startTrip(id)).toBe(false) // todavía no la aceptó
+    store().transition(id, 'aceptada', 'profesional')
+    expect(store().startTrip(id)).toBe(true)
+
+    const enCamino = requestById(id)
+    expect(enCamino.status).toBe('en_camino')
+    expect(enCamino.trip).toMatchObject({ etaMinutes: expect.any(Number), distanceKm: expect.any(Number) })
+    expect(enCamino.trip?.arrivedAt).toBeUndefined()
+    // El cliente todavía puede cancelar; el profesional, echarse atrás
+    expect(TRANSITIONS.en_camino).toMatchObject({ cancelada: 'cliente', rechazada: 'profesional' })
+
+    store().arrive(id)
+    const llegada = requestById(id).trip?.arrivedAt
+    expect(llegada).toBeDefined()
+    store().arrive(id) // una sola vez
+    expect(requestById(id).trip?.arrivedAt).toBe(llegada)
+
+    expect(store().startJob(id, requestById(id).startCode)).toBe(true)
+    expect(requestById(id).history.map((h) => h.status)).toEqual(['pendiente', 'aceptada', 'en_camino', 'en_proceso'])
+  })
+
+  it('un pedido urgente se acepta saliendo en ese momento hacia el domicilio', () => {
+    const urgente = store().createRequest(newInput({ urgent: true }))
+    expect(store().accept(urgente)).toBe(true)
+    expect(requestById(urgente).status).toBe('en_camino')
+    expect(requestById(urgente).history.map((h) => h.status)).toEqual(['pendiente', 'aceptada', 'en_camino'])
+    expect(requestById(urgente).trip).toBeDefined()
+
+    // Uno con fecha queda aceptado, a la espera de que el profesional salga
+    const agendado = store().createRequest(newInput())
+    expect(store().accept(agendado)).toBe(true)
+    expect(requestById(agendado).status).toBe('aceptada')
+    expect(store().accept(agendado)).toBe(false)
+  })
+
   it('el profesional solo inicia el trabajo con el código del cliente', () => {
     const id = store().createRequest(newInput())
     const { startCode } = requestById(id)

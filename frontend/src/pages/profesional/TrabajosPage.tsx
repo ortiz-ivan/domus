@@ -14,14 +14,15 @@ import { useProRequests } from './useProRequests'
 type Tab = 'iniciar' | 'proceso' | 'confirmar' | 'finalizados'
 
 const TAB_STATUSES: Record<Tab, RequestStatus[]> = {
-  iniciar: ['aceptada'],
+  iniciar: ['aceptada', 'en_camino'],
   proceso: ['en_proceso'],
   confirmar: ['terminada', 'confirmada'],
   finalizados: ['pagada'],
 }
 
 const HIGHLIGHTS: Partial<Record<RequestStatus, string>> = {
-  aceptada: 'Iniciá el trabajo cuando llegues',
+  aceptada: 'Avisá cuando salgas hacia el domicilio',
+  en_camino: 'Pedile el código al cliente al llegar',
   en_proceso: 'Marcalo como terminado al finalizar',
 }
 

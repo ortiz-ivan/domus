@@ -10,7 +10,7 @@ import { SearchField } from '@/components/ui/SearchField'
 import { SelectMenu } from '@/components/ui/SelectMenu'
 import { ShowMore } from '@/components/ui/ShowMore'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
+import { formatDate, formatGs, scheduleLabel } from '@/lib/format'
 import { normalize } from '@/lib/search'
 import { STATUS_META } from '@/lib/status'
 import { usePaged } from '@/lib/usePaged'
@@ -148,7 +148,7 @@ export function AdminSolicitudesPage() {
               <div>
                 <dt className="text-muted-foreground">Fecha del servicio</dt>
                 <dd className="font-medium">
-                  {formatDate(open.date)} · {TIME_SLOT_LABELS[open.timeSlot].split(' (')[0]}
+                  {scheduleLabel(open)}
                 </dd>
               </div>
               <div>

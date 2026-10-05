@@ -13,4 +13,7 @@ export const CAN_REQUEST = DEMO_SCOPE === 'full' || DEMO_SCOPE === 'profesional'
 /** Herramientas de la exposición (controles del presentador): solo con todos los roles */
 export const PRESENTER_TOOLS = DEMO_SCOPE === 'full'
 
+/** La app corre dentro de un celular de la vista dividida (/presentacion) */
+export const IS_EMBEDDED = typeof window !== 'undefined' && window.self !== window.top
+
 export const isRoleEnabled = (role: Role) => enabledRoles(DEMO_SCOPE).includes(role)

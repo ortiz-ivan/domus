@@ -5,7 +5,7 @@ import { useBackHere } from '@/app/useBackHere'
 import { LinkButton } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
-import { formatDate, formatGs, TIME_SLOT_LABELS } from '@/lib/format'
+import { formatGs, scheduleLabel } from '@/lib/format'
 import { lastMonths } from '@/lib/periods'
 import { useDemoStore } from '@/store/demo'
 import { ratingOf, useCurrentProfessional, useDirectory } from '@/store/selectors'
@@ -22,7 +22,7 @@ export function ProfesionalInicioPage() {
   if (!professional) return null
 
   const pending = requests.filter((r) => r.status === 'pendiente')
-  const working = requests.filter((r) => r.status === 'aceptada' || r.status === 'en_proceso')
+  const working = requests.filter((r) => r.status === 'aceptada' || r.status === 'en_camino' || r.status === 'en_proceso')
   const next = [...working].sort((a, b) => a.date.localeCompare(b.date))[0]
   const [month] = lastMonths(1)
   const ownIds = new Set(requests.map((r) => r.id))
@@ -90,7 +90,7 @@ export function ProfesionalInicioPage() {
                 <p className="text-sm text-muted-foreground">{dir.user(next.clientId)?.name}</p>
                 <p className="mt-3 flex items-center gap-2 text-sm">
                   <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
-                  {formatDate(next.date)} · {TIME_SLOT_LABELS[next.timeSlot]}
+                  {scheduleLabel(next, true)}
                 </p>
                 <p className="mt-1 flex items-center gap-2 text-sm">
                   <MapPin className="size-4 text-muted-foreground" aria-hidden="true" />

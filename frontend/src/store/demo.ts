@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { createSeed, type DemoData } from '@/data/seed'
 import { canTransition } from '@/lib/status'
+import { locateAddress, planTrip, routeTo } from '@/lib/places'
 import { newStartCode } from '@/lib/startCode'
 import type {
   PaymentMethod,
@@ -15,13 +16,19 @@ import type {
 
 export type NewRequestInput = Pick<
   ServiceRequest,
-  'clientId' | 'professionalId' | 'categoryId' | 'title' | 'description' | 'address' | 'city' | 'date' | 'timeSlot' | 'price' | 'estimate'
+  'clientId' | 'professionalId' | 'categoryId' | 'title' | 'description' | 'address' | 'city' | 'date' | 'timeSlot' | 'urgent' | 'price' | 'estimate'
 >
 
 interface DemoActions {
   createRequest: (input: NewRequestInput) => string
   /** Cambia el estado si el rol tiene permiso (ver lib/status.ts). Devuelve si se aplicó. */
   transition: (requestId: string, to: RequestStatus, role: Role, note?: string) => boolean
+  /** El profesional acepta. Si el pedido es urgente ("Lo necesito ya") sale en ese momento hacia el domicilio. */
+  accept: (requestId: string) => boolean
+  /** El profesional sale hacia el domicilio: arranca el viaje simulado. Devuelve si se aplicó. */
+  startTrip: (requestId: string) => boolean
+  /** El profesional avisa que llegó (también se marca solo al terminar el viaje) */
+  arrive: (requestId: string) => void
   /** El profesional inicia el trabajo con el código que le da el cliente. Devuelve si el código era correcto. */
   startJob: (requestId: string, code: string) => boolean
   addReview: (requestId: string, rating: number, comment: string, photos?: string[]) => void
@@ -89,6 +96,33 @@ export const useDemoStore = create<DemoState>()(
           ),
         }))
         return true
+      },
+
+      accept: (requestId) => {
+        if (!get().transition(requestId, 'aceptada', 'profesional')) return false
+        if (get().requests.find((r) => r.id === requestId)?.urgent) get().startTrip(requestId)
+        return true
+      },
+
+      startTrip: (requestId) => {
+        const request = get().requests.find((r) => r.id === requestId)
+        const pro = get().professionals.find((p) => p.id === request?.professionalId)
+        if (!request || !pro || !canTransition(request.status, 'en_camino', 'profesional')) return false
+        const trip = planTrip(routeTo(pro, locateAddress(request.address, request.city)))
+        set((s) => ({
+          requests: s.requests.map((r) =>
+            r.id === requestId ? { ...r, status: 'en_camino', trip, history: [...r.history, { status: 'en_camino', at: trip.startedAt }] } : r,
+          ),
+        }))
+        return true
+      },
+
+      arrive: (requestId) => {
+        const request = get().requests.find((r) => r.id === requestId)
+        if (request?.status !== 'en_camino' || !request.trip || request.trip.arrivedAt) return
+        set((s) => ({
+          requests: s.requests.map((r) => (r.id === requestId && r.trip ? { ...r, trip: { ...r.trip, arrivedAt: now() } } : r)),
+        }))
       },
 
       startJob: (requestId, code) => {
@@ -159,7 +193,7 @@ export const useDemoStore = create<DemoState>()(
     {
       name: STORAGE_KEY,
       // Subir la versión cuando cambia la forma de los datos: descarta lo guardado y recarga el seed
-      version: 9,
+      version: 11,
       storage: createJSONStorage(() => safeLocalStorage),
       migrate: () => createSeed() as DemoState,
     },

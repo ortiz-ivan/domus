@@ -59,6 +59,35 @@ describe('avisos en tiempo real', () => {
     expect(n.otroProfesional).toEqual([])
   })
 
+  it('el cliente se entera de que el profesional salió y de que llegó', () => {
+    create()
+    store().transition(id, 'aceptada', 'profesional')
+    const salida = noticesAfter(() => store().startTrip(id))
+    expect(salida.cliente).toEqual([expect.stringMatching(/^Carlos está en camino · llega en ~\d+ min$/)])
+    expect(salida.profesional).toEqual([])
+
+    const llegada = noticesAfter(() => store().arrive(id))
+    expect(llegada.cliente).toEqual(['Carlos llegó a tu domicilio. Dale tu código de inicio'])
+    expect(llegada.profesional).toEqual([])
+    expect(notificationFeed(snapshot(), cliente)[0].message).toBe('Carlos llegó a tu domicilio. Dale tu código de inicio')
+  })
+
+  it('un urgente: el profesional ve que es urgente y, al aceptarlo, el cliente se entera de las dos cosas', () => {
+    const nueva = noticesAfter(() => {
+      id = store().createRequest({
+        clientId: DEMO_USER_IDS.cliente, professionalId: 'p-1', categoryId: 'plomeria', title: 'Pérdidas de agua', description: 'Se inunda la cocina.',
+        address: 'Av. España 1234', city: 'Asunción', date: '2030-01-10', timeSlot: 'manana', urgent: true, price: 150000,
+      })
+    })
+    expect(nueva.profesional).toEqual(['Nueva solicitud urgente de María: Pérdidas de agua'])
+
+    const aceptada = noticesAfter(() => store().accept(id))
+    expect(aceptada.cliente).toEqual([
+      'Carlos aceptó tu solicitud “Pérdidas de agua”',
+      expect.stringMatching(/^Carlos está en camino · llega en ~\d+ min$/),
+    ])
+  })
+
   it('cada avance del profesional le llega solo al cliente', () => {
     create()
     const aceptada = noticesAfter(() => store().transition(id, 'aceptada', 'profesional'))

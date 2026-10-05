@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useDemoStore } from '@/store/demo'
 import { useSessionStore } from '@/store/session'
-import type { Professional, Review } from '@/types'
+import type { Category, Professional, Review } from '@/types'
 
 export function useCurrentUser() {
   const userId = useSessionStore((s) => s.userId)
@@ -41,4 +41,21 @@ export function useDirectory() {
     }),
     [categories, professionals, users],
   )
+}
+
+/**
+ * Un profesional verificado por categoría para ingresar a la demo (en plomería, Carlos):
+ * así se pueden probar pedidos de cualquier categoría y recibirlos del otro lado.
+ */
+export function demoProfessionals(categories: Category[], professionals: Professional[]): { category: Category; professional: Professional }[] {
+  return categories.flatMap((category) => {
+    const professional = professionals.find((p) => p.verified && p.categoryIds[0] === category.id)
+    return professional ? [{ category, professional }] : []
+  })
+}
+
+export function useDemoProfessionals() {
+  const categories = useDemoStore((s) => s.categories)
+  const professionals = useDemoStore((s) => s.professionals)
+  return useMemo(() => demoProfessionals(categories, professionals), [categories, professionals])
 }

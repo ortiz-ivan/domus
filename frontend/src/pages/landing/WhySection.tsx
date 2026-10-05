@@ -61,9 +61,8 @@ const FEATURES: Feature[] = [
 
 function RequestScreen() {
   const options = [
-    { title: 'Lo necesito ya', hint: 'Dentro de 48 horas' },
-    { title: 'Esta semana', hint: 'No es urgente' },
-    { title: 'Elegir una fecha', hint: 'Tengo un día en mente' },
+    { title: 'Lo necesito ya', hint: 'Sale hacia tu casa al aceptar' },
+    { title: 'Elegir una fecha', hint: 'Tengo un día y un horario en mente' },
   ]
   return (
     <div className="flex h-full flex-col">

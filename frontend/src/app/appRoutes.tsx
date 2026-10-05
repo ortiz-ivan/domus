@@ -1,4 +1,5 @@
 import type { RouteObject } from 'react-router'
+import { PRESENTER_TOOLS } from '@/app/config'
 import { adminRoutes } from '@/app/routes/adminRoutes'
 import { clienteRoutes } from '@/app/routes/clienteRoutes'
 import { from } from '@/app/routes/lazy'
@@ -14,4 +15,8 @@ export const appRoutes: RouteObject[] = [
   ...clienteRoutes,
   ...profesionalRoutes,
   ...adminRoutes,
+  // Vista dividida para la TV: cliente y profesional lado a lado
+  ...(PRESENTER_TOOLS
+    ? [{ path: '/presentacion', handle: { title: 'Presentación' }, lazy: from(() => import('@/pages/PresentacionPage'), 'PresentacionPage') }]
+    : []),
 ]

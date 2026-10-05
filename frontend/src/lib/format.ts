@@ -1,4 +1,4 @@
-import type { TimeSlot } from '@/types'
+import type { ServiceRequest, TimeSlot } from '@/types'
 
 const currency = new Intl.NumberFormat('es-PY', {
   style: 'currency',
@@ -34,6 +34,25 @@ export const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
   tarde: 'Tarde (13 a 18 h)',
   noche: 'Noche (18 a 21 h)',
 }
+
+/** Horario de un pedido urgente ("Lo necesito ya") */
+export const URGENT_LABEL = 'Ahora, lo antes posible'
+
+/** Franja en la que cae una hora (para guardar la de un pedido urgente) */
+export function timeSlotAt(at: Date): TimeSlot {
+  const h = at.getHours()
+  return h < 13 ? 'manana' : h < 18 ? 'tarde' : 'noche'
+}
+
+/** "12 oct 2026 · Mañana", o "Ahora, lo antes posible" si es urgente. `long`: con el rango de horas. */
+export function scheduleLabel(request: Pick<ServiceRequest, 'date' | 'timeSlot' | 'urgent'>, long = false): string {
+  if (request.urgent) return URGENT_LABEL
+  const slot = TIME_SLOT_LABELS[request.timeSlot]
+  return `${formatDate(request.date)} · ${long ? slot : slot.split(' (')[0]}`
+}
+
+/** El horario solo, para las fichas que muestran fecha y horario por separado */
+export const timeSlotLabel = (request: Pick<ServiceRequest, 'timeSlot' | 'urgent'>) => (request.urgent ? URGENT_LABEL : TIME_SLOT_LABELS[request.timeSlot])
 
 export function initials(name: string): string {
   return name

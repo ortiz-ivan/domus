@@ -141,7 +141,7 @@ export function InboxScreen({ playing }: ScreenProps) {
             </div>
             <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
               <CalendarDays className="size-3" />
-              Esta semana · Tarde
+              Mañana · Tarde
             </p>
             {estimate && (
               <p className="mt-1 text-[11px]">
