@@ -71,13 +71,17 @@ test('el cliente contrata, el profesional trabaja y el cliente califica y paga',
   await pro.getByRole('button', { name: 'Aceptar trabajo' }).click()
 
   // 5-6. Seguimiento y finalización
+  // El profesional inicia con el código que el cliente ve en su seguimiento
+  const codigo = (await cliente.getByTestId('start-code').textContent())!.trim()
   await pro.getByRole('button', { name: 'Iniciar trabajo' }).click()
+  await pro.getByLabel('Código de inicio').fill(codigo)
+  await pro.getByRole('dialog').getByRole('button', { name: 'Iniciar' }).click()
   await pro.getByRole('button', { name: 'Marcar como terminado' }).click()
   await pro.getByRole('dialog').getByRole('button', { name: 'Sí, terminé' }).click()
   await expect(pro.getByRole('heading', { name: 'Esperando confirmación' })).toBeVisible()
 
   // 7. Confirmación: el seguimiento del cliente se actualiza solo y ofrece continuar
-  await cliente.getByRole('main').getByRole('link', { name: 'Continuar' }).click()
+  await cliente.getByRole('main').getByRole('link', { name: 'Confirmar trabajo' }).click()
   await expect(cliente.getByRole('heading', { name: 'Trabajo terminado' })).toBeVisible()
   await cliente.getByRole('button', { name: 'Sí, quedó bien' }).click()
 

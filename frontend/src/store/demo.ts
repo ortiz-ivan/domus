@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { createSeed, type DemoData } from '@/data/seed'
 import { canTransition } from '@/lib/status'
+import { newStartCode } from '@/lib/startCode'
 import type {
   PaymentMethod,
   PlanId,
@@ -21,6 +22,8 @@ interface DemoActions {
   createRequest: (input: NewRequestInput) => string
   /** Cambia el estado si el rol tiene permiso (ver lib/status.ts). Devuelve si se aplicó. */
   transition: (requestId: string, to: RequestStatus, role: Role, note?: string) => boolean
+  /** El profesional inicia el trabajo con el código que le da el cliente. Devuelve si el código era correcto. */
+  startJob: (requestId: string, code: string) => boolean
   addReview: (requestId: string, rating: number, comment: string, photos?: string[]) => void
   payRequest: (requestId: string, method: PaymentMethod) => boolean
   updateProfessional: (id: string, changes: Partial<Omit<Professional, 'id' | 'userId'>>) => void
@@ -69,6 +72,7 @@ export const useDemoStore = create<DemoState>()(
           id,
           code: `DOM-${nextCode}`,
           status: 'pendiente',
+          startCode: newStartCode(),
           history: [{ status: 'pendiente', at: createdAt }],
           createdAt,
         }
@@ -85,6 +89,12 @@ export const useDemoStore = create<DemoState>()(
           ),
         }))
         return true
+      },
+
+      startJob: (requestId, code) => {
+        const request = get().requests.find((r) => r.id === requestId)
+        if (!request || code.trim() !== request.startCode) return false
+        return get().transition(requestId, 'en_proceso', 'profesional')
       },
 
       addReview: (requestId, rating, comment, photos) => {
@@ -149,7 +159,7 @@ export const useDemoStore = create<DemoState>()(
     {
       name: STORAGE_KEY,
       // Subir la versión cuando cambia la forma de los datos: descarta lo guardado y recarga el seed
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => safeLocalStorage),
       migrate: () => createSeed() as DemoState,
     },

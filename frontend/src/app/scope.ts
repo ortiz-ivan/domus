@@ -3,8 +3,8 @@ import type { Role } from '../types/index.ts'
 
 /**
  * Hasta dónde llega la demo publicada (VITE_DEMO_SCOPE):
- * - full: todo, con solicitudes (desarrollo local, presentación)
- * - profesional: landing + apps del cliente y del profesional, con solicitudes (vista previa en Netlify)
+ * - full: todo, con solicitudes (desarrollo local, presentación, vista previa en Netlify)
+ * - profesional: landing + apps del cliente y del profesional, con solicitudes
  * - cliente: landing + app del cliente, sin solicitar servicios
  * - landing: solo la landing
  * Lo leen la app (config.ts) y vite.config.ts, que deja afuera del build el código de los roles no publicados.

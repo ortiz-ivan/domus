@@ -91,6 +91,8 @@ export interface ServiceRequest {
   price: number
   /** Presupuesto estimado que vio el cliente al pedir (no hay si eligió "Otro problema") */
   estimate?: PriceRange
+  /** Código que el cliente le da al profesional al llegar; sin él no se puede iniciar el trabajo */
+  startCode: string
   createdAt: string
 }
 

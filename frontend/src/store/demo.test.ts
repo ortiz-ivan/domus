@@ -84,6 +84,20 @@ describe('flujo principal de la demo', () => {
     store().transition(started, 'en_proceso', 'profesional')
     expect(store().transition(started, 'cancelada', 'cliente')).toBe(false)
   })
+  it('el profesional solo inicia el trabajo con el código del cliente', () => {
+    const id = store().createRequest(newInput())
+    const { startCode } = requestById(id)
+    expect(startCode).toMatch(/^\d{4}$/)
+    expect(store().startJob(id, startCode)).toBe(false) // todavía no la aceptó
+
+    store().transition(id, 'aceptada', 'profesional')
+    const wrong = startCode === '0000' ? '1111' : '0000'
+    expect(store().startJob(id, wrong)).toBe(false)
+    expect(requestById(id).status).toBe('aceptada')
+
+    expect(store().startJob(id, startCode)).toBe(true)
+    expect(requestById(id).status).toBe('en_proceso')
+  })
 })
 
 describe('transiciones prohibidas', () => {

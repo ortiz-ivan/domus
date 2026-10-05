@@ -9,6 +9,7 @@ import type {
   StatusChange,
   User,
 } from '@/types'
+import { newStartCode } from '@/lib/startCode'
 
 /** Usuarios con los que se entra a cada rol durante la demo */
 export const DEMO_USER_IDS = {
@@ -264,7 +265,10 @@ function history(...steps: [StatusChange['status'], number][]): StatusChange[] {
   return steps.map(([status, days], i) => ({ status, at: daysAgo(days, 9 + i) }))
 }
 
-const requests: ServiceRequest[] = [
+/** El código de inicio se agrega al final (ver allRequests), con azar fijo para que la demo sea siempre igual */
+type SeedRequest = Omit<ServiceRequest, 'startCode'>
+
+const requests: SeedRequest[] = [
   // Del cliente demo: una por cada momento del flujo, para mostrar todos los estados
   {
     id: 'r-1', code: 'DOM-1001', clientId: 'u-cli-1', professionalId: 'p-1', categoryId: 'plomeria',
@@ -386,10 +390,10 @@ const REVIEW_COMMENTS: [number, string][] = [
 const historicClients = clients.filter((c) => c.id !== DEMO_USER_IDS.cliente)
 const ADDRESSES = ['Av. Mcal. López 3200', 'Calle Palma 540', 'Av. Artigas 1850', 'Tte. Fariña 1120', 'Av. Brasilia 777', 'Calle Cerro Corá 950']
 
-function buildHistory(): { requests: ServiceRequest[]; reviews: Review[] } {
+function buildHistory(): { requests: SeedRequest[]; reviews: Review[] } {
   const random = seededRandom(2026)
   const pick = <T,>(items: readonly T[]) => items[Math.floor(random() * items.length)]
-  const out: ServiceRequest[] = []
+  const out: SeedRequest[] = []
   const outReviews: Review[] = []
 
   for (let i = 0; i < 60; i++) {
@@ -438,6 +442,9 @@ function buildHistory(): { requests: ServiceRequest[]; reviews: Review[] } {
 
 const historic = buildHistory()
 
+const startCodeRandom = seededRandom(9031)
+const allRequests: ServiceRequest[] = [...requests, ...historic.requests].map((r) => ({ ...r, startCode: newStartCode(startCodeRandom) }))
+
 export const DEFAULT_SETTINGS: PlatformSettings = {
   commissionRate: 0.1,
   platformName: 'Domus',
@@ -463,9 +470,9 @@ export function createSeed(): DemoData {
     users: [...clients, ...proUsers, ...admins],
     categories,
     professionals,
-    requests: [...requests, ...historic.requests],
+    requests: allRequests,
     reviews: [...reviews, ...historic.reviews],
-    payments: paymentsFor([...requests, ...historic.requests], DEFAULT_SETTINGS.commissionRate),
+    payments: paymentsFor(allRequests, DEFAULT_SETTINGS.commissionRate),
     settings: DEFAULT_SETTINGS,
   }
 }

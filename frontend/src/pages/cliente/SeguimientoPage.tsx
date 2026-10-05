@@ -1,4 +1,4 @@
-import { CalendarDays, Clock, MapPin, Receipt } from 'lucide-react'
+import { CalendarDays, Clock, KeyRound, MapPin, Receipt } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { RequestTimeline } from '@/components/RequestTimeline'
@@ -77,6 +77,21 @@ export function SeguimientoPage() {
                   <LinkButton to={`/cliente/categorias/${request.categoryId}`}>Buscar otro profesional</LinkButton>
                 </div>
               )}
+            </Card>
+          )}
+
+          {request.status === 'aceptada' && (
+            <Card className="flex gap-4">
+              <KeyRound className="mt-1 size-6 shrink-0 text-primary" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold">Tu código de inicio</h2>
+                <p className="mt-1 font-heading text-3xl font-bold tracking-[0.3em] tabular-nums" data-testid="start-code">
+                  {request.startCode}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Dáselo a {professional?.name ?? 'el profesional'} cuando llegue. Sin este código no puede iniciar el trabajo.
+                </p>
+              </div>
             </Card>
           )}
 
