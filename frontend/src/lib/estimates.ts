@@ -37,11 +37,11 @@ const SERVICE_FACTORS: Record<string, [number, number]> = {
   'Cambio de cerradura': [1.2, 2.2],
   'Cerraduras de seguridad': [2, 4],
   'Copias de llaves': [0.3, 0.6],
-  // Limpieza
-  'Limpieza profunda': [1, 2],
-  'Limpieza post obra': [1.5, 3],
-  'Tapizados y alfombras': [0.8, 1.6],
-  'Limpieza de vidrios': [0.6, 1.2],
+  // Albañilería
+  'Revoque de paredes': [1.5, 3.5],
+  'Contrapisos y carpetas': [2, 5],
+  'Colocación de cerámicos': [2, 5],
+  'Reformas y ampliaciones': [5, 15],
   // Jardinería
   'Corte de césped': [0.6, 1.2],
   'Poda de árboles': [1.2, 3],

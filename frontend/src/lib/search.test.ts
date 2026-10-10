@@ -15,7 +15,7 @@ describe('buscador del landing', () => {
     ['quiero pintar el living', 'pintura'],
     ['me quedé afuera, puerta trabada', 'cerrajeria'],
     ['cortar el pasto del patio', 'jardineria'],
-    ['limpieza después de la mudanza', 'limpieza'],
+    ['necesito un albañil para el contrapiso', 'albanileria'],
     ['arreglar la puerta del placard', 'carpinteria'],
   ])('"%s" → %s', (query, expected) => {
     expect(match(query)).toBe(expected)

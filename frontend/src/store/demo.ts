@@ -193,7 +193,7 @@ export const useDemoStore = create<DemoState>()(
     {
       name: STORAGE_KEY,
       // Subir la versión cuando cambia la forma de los datos: descarta lo guardado y recarga el seed
-      version: 11,
+      version: 12,
       storage: createJSONStorage(() => safeLocalStorage),
       migrate: () => createSeed() as DemoState,
     },

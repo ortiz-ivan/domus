@@ -8,7 +8,7 @@ const KEYWORDS: Record<string, string[]> = {
   pintura: ['pintar', 'pintura', 'pintor', 'pared', 'humedad', 'mancha', 'fachada', 'techo'],
   carpinteria: ['mueble', 'madera', 'puerta', 'placard', 'ropero', 'cajon', 'carpintero', 'mesa', 'estante'],
   cerrajeria: ['llave', 'cerradura', 'candado', 'trabada', 'cerrajero', 'cerre', 'olvide'],
-  limpieza: ['limpiar', 'limpieza', 'sucio', 'alfombra', 'sillon', 'tapizado', 'vidrio', 'mudanza'],
+  albanileria: ['albanil', 'albanileria', 'revoque', 'revocar', 'contrapiso', 'carpeta', 'ceramico', 'ceramica', 'piso', 'azulejo', 'porcelanato', 'ladrillo', 'muro', 'grieta', 'rajadura', 'reforma', 'ampliacion', 'obra', 'cemento'],
   jardineria: ['pasto', 'cesped', 'jardin', 'poda', 'podar', 'arbol', 'planta', 'yuyo', 'jardinero'],
 }
 

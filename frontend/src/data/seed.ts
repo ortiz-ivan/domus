@@ -68,8 +68,8 @@ const categories: Category[] = [
     image: '/images/cerrajeria.webp', services: ['Apertura de puertas', 'Cambio de cerradura', 'Cerraduras de seguridad', 'Copias de llaves'],
   },
   {
-    id: 'limpieza', name: 'Limpieza', description: 'Limpieza profunda, post obra y tapizados.', icon: 'sparkles',
-    image: '/images/limpieza.webp', services: ['Limpieza profunda', 'Limpieza post obra', 'Tapizados y alfombras', 'Limpieza de vidrios'],
+    id: 'albanileria', name: 'Albañilería', description: 'Revoques, contrapisos, cerámicos y reformas.', icon: 'brick-wall',
+    image: '/images/albanileria.webp', services: ['Revoque de paredes', 'Contrapisos y carpetas', 'Colocación de cerámicos', 'Reformas y ampliaciones'],
   },
   {
     id: 'jardineria', name: 'Jardinería', description: 'Corte de césped, poda y mantenimiento.', icon: 'trees',
@@ -110,10 +110,10 @@ const proSeeds: ProSeed[] = [
   { id: 'p-4', name: 'Patricia Acosta', categoryIds: ['electricidad'], bio: 'Instalaciones eléctricas nuevas, iluminación LED y domótica básica.', yearsExperience: 6, basePrice: 140000, city: 'San Lorenzo', verified: true, jobsCompleted: 78, pastRating: { average: 4.7, count: 54 }, email: 'patricia.acosta@demo.com', phone: '0972 444 555', joinedDaysAgo: 110 },
   { id: 'p-5', name: 'Hugo Cabrera', categoryIds: ['aire'], bio: 'Técnico en refrigeración. Instalación, limpieza y carga de gas.', yearsExperience: 10, basePrice: 200000, city: 'Fernando de la Mora', verified: true, jobsCompleted: 142, pastRating: { average: 4.8, count: 117 }, email: 'hugo.cabrera@demo.com', phone: '0973 555 666', joinedDaysAgo: 160 },
   { id: 'p-6', name: 'Miguel Ortiz', categoryIds: ['pintura'], bio: 'Pintura de interiores y exteriores, impermeabilización de techos.', yearsExperience: 9, basePrice: 250000, city: 'Lambaré', verified: true, jobsCompleted: 67, pastRating: { average: 4.5, count: 49 }, email: 'miguel.ortiz@demo.com', phone: '0973 666 777', joinedDaysAgo: 130 },
-  { id: 'p-7', name: 'Rosa Vera', categoryIds: ['pintura', 'limpieza'], bio: 'Terminaciones prolijas y limpieza post obra.', yearsExperience: 4, basePrice: 180000, city: 'Asunción', verified: false, jobsCompleted: 23, pastRating: { average: 4.4, count: 12 }, email: 'rosa.vera@demo.com', phone: '0974 777 888', joinedDaysAgo: 40 },
+  { id: 'p-7', name: 'Rosa Vera', categoryIds: ['pintura', 'albanileria'], bio: 'Revoques, empastado y terminaciones prolijas.', yearsExperience: 4, basePrice: 180000, city: 'Asunción', verified: false, jobsCompleted: 23, pastRating: { average: 4.4, count: 12 }, email: 'rosa.vera@demo.com', phone: '0974 777 888', joinedDaysAgo: 40 },
   { id: 'p-8', name: 'Andrés Samaniego', categoryIds: ['carpinteria'], bio: 'Muebles a medida, placares y reparación de puertas.', yearsExperience: 18, basePrice: 220000, city: 'Luque', verified: true, jobsCompleted: 205, pastRating: { average: 4.9, count: 176 }, email: 'andres.samaniego@demo.com', phone: '0974 888 999', joinedDaysAgo: 190 },
   { id: 'p-9', name: 'Víctor Núñez', categoryIds: ['cerrajeria'], bio: 'Cerrajería de urgencia 24 h. Cambio de combinación y cerraduras de seguridad.', yearsExperience: 11, basePrice: 100000, city: 'San Lorenzo', verified: true, jobsCompleted: 312, pastRating: { average: 4.8, count: 264 }, email: 'victor.nunez@demo.com', phone: '0975 999 000', joinedDaysAgo: 170 },
-  { id: 'p-10', name: 'Liliana Báez', categoryIds: ['limpieza'], bio: 'Limpieza profunda de hogares, tapizados y alfombras.', yearsExperience: 5, basePrice: 160000, city: 'Asunción', verified: true, jobsCompleted: 88, pastRating: { average: 4.7, count: 63 }, email: 'liliana.baez@demo.com', phone: '0975 000 111', joinedDaysAgo: 90 },
+  { id: 'p-10', name: 'Liliana Báez', categoryIds: ['albanileria'], bio: 'Albañil con experiencia en revoques, contrapisos y colocación de cerámicos.', yearsExperience: 5, basePrice: 160000, city: 'Asunción', verified: true, jobsCompleted: 88, pastRating: { average: 4.7, count: 63 }, email: 'liliana.baez@demo.com', phone: '0975 000 111', joinedDaysAgo: 90 },
   { id: 'p-11', name: 'Óscar Riquelme', categoryIds: ['jardineria'], bio: 'Mantenimiento de jardines, poda de árboles y paisajismo.', yearsExperience: 8, basePrice: 130000, city: 'Lambaré', verified: true, jobsCompleted: 119, pastRating: { average: 4.6, count: 95 }, email: 'oscar.riquelme@demo.com', phone: '0976 111 000', joinedDaysAgo: 140 },
   { id: 'p-12', name: 'Gustavo Paredes', categoryIds: ['electricidad', 'carpinteria'], bio: 'Mantenimiento general del hogar: electricidad y arreglos de carpintería.', yearsExperience: 3, basePrice: 110000, city: 'Fernando de la Mora', verified: false, jobsCompleted: 15, pastRating: { average: 4.3, count: 8 }, email: 'gustavo.paredes@demo.com', phone: '0976 222 111', joinedDaysAgo: 25 },
 ]
@@ -168,9 +168,9 @@ const TRADES: Record<string, { bios: string[]; price: [number, number] }> = {
     bios: ['Aperturas de urgencia y cambio de cerraduras.', 'Cerraduras de seguridad y copias de llaves.', 'Cerrajería del hogar las 24 horas.'],
     price: [80, 160],
   },
-  limpieza: {
-    bios: ['Limpieza profunda de casas y departamentos.', 'Limpieza post obra y de fin de mudanza.', 'Limpieza de tapizados, alfombras y colchones.'],
-    price: [120, 250],
+  albanileria: {
+    bios: ['Revoques, contrapisos y reparación de paredes.', 'Colocación de cerámicos y porcelanatos.', 'Reformas, ampliaciones y obras menores del hogar.'],
+    price: [150, 300],
   },
   jardineria: {
     bios: ['Corte de césped y mantenimiento de jardines.', 'Poda de árboles y retiro de ramas.', 'Diseño y mantenimiento de jardines y patios.'],
@@ -291,8 +291,8 @@ const requests: SeedRequest[] = [
   },
   // Lista para confirmar: permite mostrar confirmación → calificación → pago sin hacer todo el flujo en vivo
   {
-    id: 'r-13', code: 'DOM-0996', clientId: 'u-cli-1', professionalId: 'p-10', categoryId: 'limpieza',
-    title: 'Limpieza profunda del departamento', description: 'Limpieza completa antes de recibir visitas: cocina, baños y vidrios.',
+    id: 'r-13', code: 'DOM-0996', clientId: 'u-cli-1', professionalId: 'p-10', categoryId: 'albanileria',
+    title: 'Reparar revoque del baño', description: 'Se descascaró el revoque por la humedad, cerca de la ducha.',
     address: 'Av. España 1234', city: 'Asunción', date: dateOnly(-1), timeSlot: 'manana',
     status: 'terminada', history: history(['pendiente', 3], ['aceptada', 3], ['en_proceso', 1], ['terminada', 1]), price: 220000, createdAt: daysAgo(3),
   },
@@ -341,8 +341,8 @@ const requests: SeedRequest[] = [
     status: 'rechazada', history: history(['pendiente', 16], ['rechazada', 15]), price: 220000, createdAt: daysAgo(16),
   },
   {
-    id: 'r-11', code: 'DOM-0975', clientId: 'u-cli-2', professionalId: 'p-10', categoryId: 'limpieza',
-    title: 'Limpieza profunda post mudanza', description: 'Casa de 3 dormitorios.',
+    id: 'r-11', code: 'DOM-0975', clientId: 'u-cli-2', professionalId: 'p-10', categoryId: 'albanileria',
+    title: 'Contrapiso del patio', description: 'Unos 20 m² para después poner cerámicos.',
     address: 'Ruta 2 km 12', city: 'Luque', date: dateOnly(-18), timeSlot: 'manana',
     status: 'cancelada', history: history(['pendiente', 19], ['cancelada', 18]), price: 320000, createdAt: daysAgo(19),
   },

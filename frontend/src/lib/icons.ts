@@ -1,10 +1,10 @@
 import {
+  BrickWall,
   Droplets,
   Hammer,
   KeyRound,
   PaintRoller,
   Snowflake,
-  Sparkles,
   Trees,
   Zap,
   type LucideIcon,
@@ -17,6 +17,6 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   'paint-roller': PaintRoller,
   hammer: Hammer,
   'key-round': KeyRound,
-  sparkles: Sparkles,
+  'brick-wall': BrickWall,
   trees: Trees,
 }

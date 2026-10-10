@@ -13,7 +13,7 @@ Se redimensionaron y convirtieron a WebP para la demo.
 | pintura.webp | <https://images.unsplash.com/photo-1693985120993-e9b203ce7631> |
 | carpinteria.webp | <https://images.unsplash.com/photo-1505798577917-a65157d3320a> |
 | cerrajeria.webp | <https://images.unsplash.com/photo-1677951570313-b0750351c461> |
-| limpieza.webp | <https://images.unsplash.com/photo-1758273238415-01ec03d9ef27> |
+| albanileria.webp | <https://images.unsplash.com/photo-1701850009190-2859ba2aeea6> |
 | jardineria.webp | <https://images.unsplash.com/photo-1690068023694-053da714f95f> |
 | profesional.webp | <https://images.unsplash.com/photo-1621905252507-b35492cc74b4> |
 | hero-768.webp | Misma foto que hero.webp, 768 px |
